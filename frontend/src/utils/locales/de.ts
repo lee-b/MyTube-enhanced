@@ -78,6 +78,8 @@ export const de = {
   fromYouTube: "Von YouTube",
   loadingYouTubeResults: "YouTube-Ergebnisse werden geladen...",
   noYouTubeResults: "Keine YouTube-Ergebnisse gefunden",
+    youtubeChannelUploads: "Videos auf diesem Kanal",
+  youtubeChannelLoadFailed: "Die Videos dieses Kanals konnten nicht geladen werden. Die Kanalseite auf youtube.com ist der Ersatz.",
   fromBilibili: "Von Bilibili",
   loadingBilibiliResults: "Bilibili-Ergebnisse werden geladen...",
   noBilibiliResults: "Keine Bilibili-Ergebnisse gefunden",

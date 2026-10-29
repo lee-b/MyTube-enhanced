@@ -78,6 +78,8 @@ export const pt = {
   fromYouTube: "Do YouTube",
   loadingYouTubeResults: "Carregando resultados do YouTube...",
   noYouTubeResults: "Nenhum resultado do YouTube encontrado",
+    youtubeChannelUploads: "Vídeos deste canal",
+  youtubeChannelLoadFailed: "Não foi possível carregar os vídeos deste canal. A página do canal no youtube.com é o fallback.",
   fromBilibili: "Do Bilibili",
   loadingBilibiliResults: "Carregando resultados do Bilibili...",
   noBilibiliResults: "Nenhum resultado do Bilibili encontrado",

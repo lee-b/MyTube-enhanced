@@ -78,6 +78,8 @@ export const ru = {
   fromYouTube: "С YouTube",
   loadingYouTubeResults: "Загрузка результатов YouTube...",
   noYouTubeResults: "Результаты YouTube не найдены",
+    youtubeChannelUploads: "Видео на этом канале",
+  youtubeChannelLoadFailed: "Не удалось загрузить видео этого канала. Страница канала на youtube.com — запасной вариант.",
   fromBilibili: "С Bilibili",
   loadingBilibiliResults: "Загрузка результатов Bilibili...",
   noBilibiliResults: "Результаты Bilibili не найдены",

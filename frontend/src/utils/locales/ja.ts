@@ -76,6 +76,8 @@ export const ja = {
   fromYouTube: "YouTubeから",
   loadingYouTubeResults: "YouTubeの結果を読み込み中...",
   noYouTubeResults: "YouTubeの結果が見つかりません",
+    youtubeChannelUploads: "このチャンネルの動画",
+  youtubeChannelLoadFailed: "このチャンネルの動画を読み込めませんでした。youtube.com のチャンネルページがフォールバックです。",
   fromBilibili: "Bilibiliから",
   loadingBilibiliResults: "Bilibiliの結果を読み込み中...",
   noBilibiliResults: "Bilibiliの結果が見つかりません",

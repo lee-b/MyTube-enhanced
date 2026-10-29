@@ -206,7 +206,7 @@ describe("redirectToChannel", () => {
     expect(response.headers.location).toBe("/author/PowerfulJRE");
   });
 
-  it("falls back to youtube.com when no local video matches the channel", async () => {
+  it("serves the local channel page when no local video matches the channel", async () => {
     storageMocks.getVideoSummaries.mockReturnValue([
       { id: "1", author: "PowerfulJRE", channelUrl: "https://www.youtube.com/channel/UCzQUP1qoWDoEbmsQxvdjxgQ" },
     ]);
@@ -215,9 +215,11 @@ describe("redirectToChannel", () => {
       "/from/youtube/channel/channel/UCunknown12345678"
     );
 
+    // The takeover keeps the browser on MyTube: the local channel page lists
+    // the channel's recent uploads via yt-dlp instead of bouncing to YouTube.
     expect(response.status).toBe(302);
     expect(response.headers.location).toBe(
-      "https://www.youtube.com/channel/UCunknown12345678"
+      "/channel/youtube/channel%2FUCunknown12345678"
     );
   });
 

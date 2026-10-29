@@ -75,3 +75,77 @@ export async function searchVideos(
   return formattedResults;
 }
 
+/**
+ * List a YouTube channel's recent videos without downloading anything.
+ *
+ * Backs the local channel page for the /from/youtube/channel takeover
+ * target: when a channel is not in the library, MyTube still shows it
+ * locally by fetching the recent uploads with a flat yt-dlp playlist
+ * (ids and titles only, like the search flow) instead of bouncing the
+ * browser to youtube.com.
+ *
+ * @param channelPath youtube.com-relative channel path, e.g.
+ *   "channel/UC...", "c/<name>" or "@<handle>" (as normalized by the
+ *   redirect controller).
+ */
+export async function searchChannelVideos(
+  channelPath: string,
+  limit: number = 24,
+  offset: number = 1
+): Promise<any[]> {
+  logger.info(
+    `Fetching YouTube channel videos for "${channelPath}" (limit: ${limit}, offset: ${offset})`
+  );
+
+  const userConfig = getUserYtDlpConfig();
+  const networkConfig = getNetworkConfigFromUserConfig(userConfig);
+  const PROVIDER_SCRIPT = getProviderScript();
+
+  const playlistEnd = offset + limit - 1;
+  const result = await executeYtDlpJson(
+    `https://www.youtube.com/${channelPath}/videos`,
+    {
+      ...networkConfig,
+      noWarnings: true,
+      skipDownload: true,
+      flatPlaylist: true,
+      playlistStart: offset,
+      playlistEnd,
+      ...(PROVIDER_SCRIPT
+        ? {
+            extractorArgs: `youtubepot-bgutilscript:script_path=${PROVIDER_SCRIPT}`,
+          }
+        : {}),
+    }
+  );
+
+  if (!result || !result.entries) {
+    return [];
+  }
+
+  const formattedResults = result.entries
+    // A flat channel playlist opens with a stub entry for the channel itself.
+    .filter((entry: any) => !(entry.id && /^UC.{22}$/.test(entry.id)))
+    .map((entry: any) => ({
+      id: entry.id,
+      title: entry.title,
+      author: entry.uploader || entry.channel,
+      channelId: entry.channel_id || undefined,
+      thumbnailUrl:
+        entry.thumbnail ||
+        (entry.thumbnails && entry.thumbnails.length > 0
+          ? entry.thumbnails[0].url
+          : ""),
+      duration: entry.duration,
+      viewCount: entry.view_count,
+      sourceUrl: `https://www.youtube.com/watch?v=${entry.id}`,
+      source: "youtube",
+    }));
+
+  logger.info(
+    `Found ${formattedResults.length} videos on YouTube channel "${channelPath}"`
+  );
+
+  return formattedResults;
+}
+

@@ -74,6 +74,8 @@ export const zh = {
   fromYouTube: "来自 YouTube",
   loadingYouTubeResults: "加载 YouTube 结果中...",
   noYouTubeResults: "未找到 YouTube 结果",
+    youtubeChannelUploads: "该频道中的视频",
+  youtubeChannelLoadFailed: "无法加载该频道的视频。youtube.com 上的频道页面是备用方案。",
   fromBilibili: "来自哔哩哔哩",
   loadingBilibiliResults: "加载哔哩哔哩结果中...",
   noBilibiliResults: "未找到哔哩哔哩结果",

@@ -34,7 +34,8 @@ import {
   trimBilibiliUrl,
 } from "../utils/helpers";
 import { logger } from "../utils/logger";
-import { getLimitParam, getPositiveIntegerParam, getStringParam } from "../utils/paramUtils";
+import { getLimitParam, getPositiveIntegerParam, getWildcardParam, getStringParam } from "../utils/paramUtils";
+import { normalizeYouTubeChannelPath } from "./redirectController";
 import { sendBadRequest, sendData, sendInternalError } from "../utils/response";
 import { validateUrl } from "../utils/security";
 
@@ -123,6 +124,70 @@ export const searchVideos = async (
 
   // Return { results } format for backward compatibility (frontend expects response.data.results)
   sendData(res, { results: resultsWithLocal });
+};
+
+/**
+ * List a YouTube channel's recent videos without downloading.
+ *
+ * Backs the local channel page for the /from/youtube/channel takeover
+ * target: when a channel is not in the library, MyTube still shows it
+ * locally (recent uploads with download actions) instead of bouncing the
+ * browser to youtube.com. The path is the youtube.com-relative form the
+ * redirect controller normalizes to, e.g. "channel/UC...", "c/<name>"
+ * or "@<handle>".
+ */
+export const channelVideos = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const rawPath = getWildcardParam(req.params) ?? "";
+  const channelPath = normalizeYouTubeChannelPath(rawPath);
+
+  if (!channelPath) {
+    throw new ValidationError(
+      "A YouTube channel path such as channel/UC..., c/<name> or @<handle> is required",
+      "channelPath",
+    );
+  }
+
+  const limit = getLimitParam(req.query.limit, 24, 50);
+  const offset = getPositiveIntegerParam(req.query.offset, 1);
+
+  const results = await downloadService.searchYouTubeChannel(
+    channelPath,
+    limit,
+    offset,
+  );
+
+  // Same annotation as the search endpoint, so the channel page can reuse
+  // the external search cards (local copies offer delete; the rest offer
+  // download through the takeover targets).
+  const role = getVisibilityScopedRole(req);
+  const resultsWithLocal = (results as Array<Record<string, any>>).map(
+    (result) => {
+      const check = storageService.checkVideoDownloadBySourceId(
+        result.id,
+        "youtube",
+        "video",
+      ) as { status?: string; videoId?: string } | undefined;
+      // Same visibility scoping as the search endpoint: the library id is
+      // only exposed when the local copy is visible to the caller, so the
+      // card actions that operate on the library video can be offered safely.
+      const visibleLocalVideoId =
+        check?.status === "exists" &&
+        !!check.videoId &&
+        !!storageService.getVideoById(check.videoId, role)
+          ? check.videoId
+          : undefined;
+      return {
+        ...result,
+        local: check?.status === "exists",
+        localVideoId: visibleLocalVideoId,
+      };
+    },
+  );
+
+  sendData(res, { results: resultsWithLocal, channelPath });
 };
 
 /**

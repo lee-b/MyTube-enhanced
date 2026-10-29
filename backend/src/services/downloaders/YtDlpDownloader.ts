@@ -7,7 +7,7 @@ import {
 } from "./BaseDownloader";
 import { getLatestVideoUrl } from "./ytdlp/ytdlpChannel";
 import { getVideoInfo as getVideoInfoFromModule } from "./ytdlp/ytdlpMetadata";
-import { searchVideos } from "./ytdlp/ytdlpSearch";
+import { searchChannelVideos, searchVideos } from "./ytdlp/ytdlpSearch";
 import { downloadVideo as downloadVideoFromModule } from "./ytdlp/ytdlpVideo";
 
 export class YtDlpDownloader extends BaseDownloader {
@@ -18,6 +18,15 @@ export class YtDlpDownloader extends BaseDownloader {
     offset: number = 1
   ): Promise<any[]> {
     return searchVideos(query, limit, offset);
+  }
+
+  // List a YouTube channel's recent videos without downloading anything.
+  static async searchChannel(
+    channelPath: string,
+    limit: number = 24,
+    offset: number = 1
+  ): Promise<any[]> {
+    return searchChannelVideos(channelPath, limit, offset);
   }
 
   // Implementation of IDownloader.getVideoInfo

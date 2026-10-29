@@ -6,6 +6,7 @@ import {
   checkBilibiliParts,
   checkPlaylist,
   checkVideoDownloadStatus,
+  channelVideos,
   downloadVideo,
   getDownloadStatus,
   searchVideos,
@@ -39,6 +40,7 @@ vi.mock("../../services/downloadManager", () => ({
 
 vi.mock("../../services/downloadService", () => ({
   searchYouTube: vi.fn(),
+  searchYouTubeChannel: vi.fn(),
   searchBilibili: vi.fn(),
   checkBilibiliVideoParts: vi.fn(),
   checkBilibiliCollectionOrSeries: vi.fn(),
@@ -135,6 +137,60 @@ const flushBackgroundTasks = async () => {
   await new Promise((resolve) => setTimeout(resolve, 0));
   await new Promise((resolve) => setTimeout(resolve, 0));
 };
+
+describe("channelVideos (YouTube channel listing)", () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+  let json: any;
+  let status: any;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    json = vi.fn();
+    status = vi.fn(() => ({ json }));
+    req = { query: {}, body: {}, headers: {} } as any;
+    res = { status, json } as any;
+    vi.mocked(isLoginRequired).mockReturnValue(true as any);
+  });
+
+  it("rejects paths that are not YouTube channel shapes", async () => {
+    req.params = { splat: "playlist?list=PLxyz" } as any;
+
+    await expect(channelVideos(req as Request, res as Response)).rejects.toThrow(
+      ValidationError
+    );
+  });
+
+  it("forwards paging and annotates results with local presence", async () => {
+    req.params = { splat: "channel/UCzQUP1qoWDoEbmsQxvdjxgQ" } as any;
+    req.query = { limit: "12", offset: "2" } as any;
+    vi.mocked(downloadService.searchYouTubeChannel).mockResolvedValue([
+      { id: "v1", title: "Recent upload" },
+      { id: "v2", title: "Older upload" },
+    ] as any);
+    vi.mocked(storageService.checkVideoDownloadBySourceId)
+      .mockReturnValueOnce({ found: true, status: "exists", videoId: "local-1" } as any)
+      .mockReturnValueOnce({ found: true, status: "deleted" } as any);
+    vi.mocked(storageService.getVideoById).mockReturnValue({ id: "local-1" } as any);
+
+    await channelVideos(req as Request, res as Response);
+
+    expect(downloadService.searchYouTubeChannel).toHaveBeenCalledWith(
+      "channel/UCzQUP1qoWDoEbmsQxvdjxgQ",
+      12,
+      2
+    );
+    // v1 is local (with its visible library id); v2 was deleted, so it is not.
+    expect(json).toHaveBeenCalledWith({
+      results: [
+        { id: "v1", title: "Recent upload", local: true, localVideoId: "local-1" },
+        { id: "v2", title: "Older upload", local: false, localVideoId: undefined },
+      ],
+      channelPath: "channel/UCzQUP1qoWDoEbmsQxvdjxgQ",
+    });
+  });
+});
 
 describe("videoDownloadController extra coverage", () => {
   let req: Partial<Request>;

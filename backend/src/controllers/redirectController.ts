@@ -11,9 +11,12 @@ import { logger } from "../utils/logger";
  * These endpoints let URL-redirector browser extensions (e.g. rxliuli's
  * Redirector) send youtube.com traffic at MyTube instead: the request resolves
  * the YouTube video/channel id against the local library and 302s the browser
- * to the matching local deep link when the content exists locally, or back to
- * the original YouTube URL when it does not. The takeover is therefore
- * non-destructive: nothing that MyTube cannot serve locally is lost.
+ * to the matching local deep link when the content exists locally. When the
+ * video is not local, the takeover queues an on-demand download and waits for
+ * the local copy; when the channel is not local, it serves a local channel
+ * page that lists the channel's recent uploads (downloadable on demand).
+ * Nothing is ever lost: the waiting page and channel page both keep a path
+ * back to the original YouTube URL when MyTube cannot deliver.
  *
  * The paths are platform-scoped (/from/youtube/...) rather than mimicking
  * youtube.com's own paths so that additional platforms can add their own
@@ -148,7 +151,10 @@ export const normalizeYouTubeChannelPath = (
  *
  * Resolve a YouTube channel path against the local library's channel URLs and
  * author names, 302ing to the local author page (/author/<author>) when a
- * match exists and back to youtube.com when it does not.
+ * match exists. When no local match exists, the browser is still kept on
+ * MyTube: it goes to the local channel page (/channel/youtube/<path>), which
+ * lists the channel's recent uploads via yt-dlp with download actions, so
+ * channels are browsable and downloadable without leaving the instance.
  *
  * Channel URLs are only persisted on videos, so a channel can only be resolved
  * locally when at least one of its videos (visible to the caller) exists in
@@ -164,11 +170,12 @@ export const redirectToChannel = async (
   const channelPath = normalizeYouTubeChannelPath(rawPath);
 
   if (!channelPath) {
+    // Not a channel path at all: straight back to YouTube.
     redirect(res, "https://www.youtube.com/");
     return;
   }
 
-  const fallbackUrl = `https://www.youtube.com/${channelPath}`;
+  const fallbackUrl = `/channel/youtube/${encodeURIComponent(channelPath)}`;
   const role = getVisibilityScopedRole(req);
   const videos = storageService.getVideoSummaries(role);
 
