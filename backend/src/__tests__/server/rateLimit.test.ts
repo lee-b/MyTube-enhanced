@@ -75,6 +75,7 @@ describe("configureRateLimiting", () => {
     const authOptions = (mocked.createdLimiters[1] as any).__options;
     const liveTranslationOptions = (mocked.createdLimiters[9] as any).__options;
 
+    // Default when MYTUBE_RATE_LIMIT_MAX is unset.
     expect(generalOptions.max).toBe(1000);
     expect(authOptions.max).toBe(5);
     expect(authOptions.skipSuccessfulRequests).toBe(true);
@@ -190,5 +191,46 @@ describe("configureRateLimiting", () => {
     expect(status).toHaveBeenCalledWith(429);
     expect(type).toHaveBeenCalledWith("application/rss+xml; charset=utf-8");
     expect(send).toHaveBeenCalledWith(expect.stringContaining("<rss>"));
+  });
+});
+
+describe("MYTUBE_RATE_LIMIT_MAX environment override", () => {
+
+  it("raises the general limiter cap when MYTUBE_RATE_LIMIT_MAX is set", () => {
+    const previous = process.env.MYTUBE_RATE_LIMIT_MAX;
+    process.env.MYTUBE_RATE_LIMIT_MAX = "10000";
+
+    try {
+      mocked.createdLimiters.length = 0;
+      configureRateLimiting({ use: vi.fn() } as any);
+
+      const generalOptions = (mocked.createdLimiters[0] as any).__options;
+      expect(generalOptions.max).toBe(10000);
+    } finally {
+      if (previous === undefined) {
+        delete process.env.MYTUBE_RATE_LIMIT_MAX;
+      } else {
+        process.env.MYTUBE_RATE_LIMIT_MAX = previous;
+      }
+    }
+  });
+
+  it("falls back to the default when the override is not a number", () => {
+    const previous = process.env.MYTUBE_RATE_LIMIT_MAX;
+    process.env.MYTUBE_RATE_LIMIT_MAX = "not-a-number";
+
+    try {
+      mocked.createdLimiters.length = 0;
+      configureRateLimiting({ use: vi.fn() } as any);
+
+      const generalOptions = (mocked.createdLimiters[0] as any).__options;
+      expect(generalOptions.max).toBe(1000);
+    } finally {
+      if (previous === undefined) {
+        delete process.env.MYTUBE_RATE_LIMIT_MAX;
+      } else {
+        process.env.MYTUBE_RATE_LIMIT_MAX = previous;
+      }
+    }
   });
 });

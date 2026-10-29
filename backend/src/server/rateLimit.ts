@@ -103,7 +103,13 @@ const createFeedLimiter = (): RequestHandler =>
 const createGeneralLimiter = (): RequestHandler => {
   return rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 1000,
+    // Configurable via MYTUBE_RATE_LIMIT_MAX (requests per 15-minute window
+    // per IP); the default covers single-user home-server use.
+    max: Number.isFinite(
+      Number.parseInt(process.env.MYTUBE_RATE_LIMIT_MAX ?? "", 10)
+    )
+      ? Number.parseInt(process.env.MYTUBE_RATE_LIMIT_MAX ?? "", 10)
+      : 1000,
     message: "Too many requests from this IP, please try again later.",
     standardHeaders: true,
     legacyHeaders: false,
