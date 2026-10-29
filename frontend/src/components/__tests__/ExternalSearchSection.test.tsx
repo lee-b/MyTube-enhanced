@@ -185,6 +185,57 @@ describe('ExternalSearchSection', () => {
             expect(view).toHaveAttribute('href', '/from/youtube/video/6SxEj1cujQE');
         });
 
+        it('swaps Download for Delete on results that are already in the library', () => {
+            const props = renderYoutubeSection({
+                results: [{ ...youtubeResult, local: true, localVideoId: 'local-1' }],
+                onDelete: vi.fn(),
+            });
+
+            expect(screen.queryByRole('button', { name: /download/i })).not.toBeInTheDocument();
+            const del = screen.getByRole('button', { name: /delete/i });
+            expect(del).toBeEnabled();
+            expect(props.onDelete).not.toHaveBeenCalled();
+        });
+
+        it('keeps the Download button when the local copy is not visible to the caller', () => {
+            renderYoutubeSection({
+                // Backend only annotates localVideoId for visible copies.
+                results: [{ ...youtubeResult, local: true, localVideoId: undefined }],
+                onDelete: vi.fn(),
+            });
+
+            expect(screen.getByRole('button', { name: /download/i })).toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument();
+        });
+
+        it('keeps the plain View/Download pair when no delete handler is wired', () => {
+            renderYoutubeSection({
+                results: [{ ...youtubeResult, local: true, localVideoId: 'local-1' }],
+            });
+
+            expect(screen.getByRole('button', { name: /download/i })).toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument();
+        });
+
+        it('only hands the confirmed result to onDelete after the modal is confirmed', async () => {
+            const onDelete = vi.fn();
+            renderYoutubeSection({
+                results: [{ ...youtubeResult, local: true, localVideoId: 'local-1' }],
+                onDelete,
+            });
+
+            fireEvent.click(screen.getByRole('button', { name: /delete/i }));
+            // The modal asks before anything is deleted.
+            expect(onDelete).not.toHaveBeenCalled();
+
+            // Confirm inside the modal (rendered after the card grid). The
+            // dialog mounts behind a transition, so wait for its button.
+            const buttons = await screen.findAllByRole('button', { name: /delete/i });
+            fireEvent.click(buttons[buttons.length - 1]);
+            expect(onDelete).toHaveBeenCalledTimes(1);
+            expect(onDelete).toHaveBeenCalledWith(expect.objectContaining({ id: '6SxEj1cujQE', localVideoId: 'local-1' }));
+        });
+
         it('keeps Bilibili cards download-only', () => {
             renderSection();
 

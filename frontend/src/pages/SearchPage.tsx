@@ -112,6 +112,11 @@ const SearchPage: React.FC = () => {
         void handleDownload(result.id, result.sourceUrl);
     };
 
+    const handleResultDelete = (result: VideoSearchResult) => {
+        if (!result.localVideoId) return;
+        void deleteVideo(result.localVideoId);
+    };
+
     const hasLocalResults = localSearchResults && localSearchResults.length > 0;
 
     const sortedLocalSearchResults = useMemo(() => {
@@ -175,6 +180,7 @@ const SearchPage: React.FC = () => {
                     loadingMore={loadingMore}
                     onLoadMore={loadMoreSearchResults}
                     onDownload={handleResultDownload}
+                    onDelete={handleResultDelete}
                     downloadingIds={downloadingIds}
                 />
             )}

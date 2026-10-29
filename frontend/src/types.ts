@@ -59,6 +59,10 @@ export interface VideoSearchResult {
    * flag leave it unset and stay clickable (the takeover target falls back
    * to the original URL when the content is not local). */
   local?: boolean;
+  /** Library id of the downloaded copy, when `local` is true and the copy is
+   * visible to the caller. Lets result cards act on the library video
+   * directly (e.g. delete) instead of only through the takeover target. */
+  localVideoId?: string;
 }
 
 export interface Collection {
