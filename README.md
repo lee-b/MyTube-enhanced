@@ -10,6 +10,23 @@ Self-hosted downloader and player for YouTube, Bilibili, Twitch, MissAV, and [yt
 🚀 100% Prompt-Engineered. 0 Lines of Manual Code.
 Built using the [franklioxygen/agent-workflows](https://github.com/franklioxygen/agent-workflows) workflow.
 
+> [!NOTE]
+> **This is a maintained fork.** `master` in this repository tracks
+> [upstream](https://github.com/franklioxygen/MyTube) and adds a set of focused
+> feature branches on top, merged into `master` with `--no-ff` so each feature
+> remains visible in history. Everything below this notice is upstream's
+> README; the fork's additions are documented here.
+>
+> **Fork additions:**
+>
+> - **Browser Redirector takeover** — pair the [Redirector](https://github.com/denari01/redirector) extension with this instance: youtube.com links are rewritten to your MyTube instance, which plays the local copy when it exists. Non-local videos are queued for on-demand download automatically (with a live progress page), then played locally on the next click; every path falls back to youtube.com. Setup guide lives at `/from/help`, with a one-click importable rules file at `/from/rules.json`.
+> - **Watched/unwatched tracking** — played videos are marked watched; the Videos view hides watched content by default (eye toggle beside Sort), video pages and card menus offer explicit mark watched/unwatched toggles, and a History view lists recently played.
+> - **Internal view counts** — the UI shows watched status instead of raw view counts; set `MYTUBE_SHOW_VIEW_COUNTS=true` to restore count display.
+> - **Configurable API rate limit** — `MYTUBE_RATE_LIMIT_MAX` sets the general per-IP request cap (default 1000 per 15 minutes).
+> - **Upload-time display** — video cards show the original upload date rather than when the video was downloaded into the library.
+>
+> **Branch layout:** `master` = upstream + merged fork features. Feature work happens on `feat/*` / `fix/*` branches and merges back with `--no-ff`. Upstream changes merge into `master` and conflicts are resolved there.
+
 [![GitHub License](https://img.shields.io/github/license/franklioxygen/mytube)](https://github.com/franklioxygen/mytube)
 ![Docker Pulls](https://img.shields.io/docker/pulls/franklioxygen/mytube)
 [![Discord](https://img.shields.io/badge/Discord-Join_Us-7289DA?logo=discord&logoColor=white)](https://discord.gg/dXn4u9kQGN)
