@@ -58,10 +58,15 @@ Built using the [franklioxygen/agent-workflows](https://github.com/franklioxygen
 - **Task Hooks**: Execute custom shell scripts at various stages of a download task (start, success, fail, cancel) for integration and automation. See [Task Hooks Guide](documents/en/hooks-guide.md).
 - **Telegram Notifications**: Receive instant notifications via Telegram bot when a download task succeeds or fails.
 - **Browser Extension**: A Chrome extension to download videos directly from your browser. Supports all yt-dlp supported sites.
+- **Browser Redirector Takeover**: Serve `/from/youtube/video/...` and `/from/youtube/channel/...` targets that URL-redirector extensions (e.g. [Redirector](https://github.com/rxliuli/redirector)) can use to send youtube.com traffic to the local library first, falling back to YouTube when content is not local. See [Browser Redirector Takeover](documents/en/redirector.md).
 
 ## Browser Extension
 
 For installation and usage instructions, please refer to [Browser Extension](documents/en/chrome-extension.md).
+
+## Browser Redirector Takeover
+
+For redirector rules that send youtube.com navigation through your MyTube library first, please refer to [Browser Redirector Takeover](documents/en/redirector.md). A ready-made, instance-aware guide is served at `/from/help` on a running instance.
 
 ## MikMok
 
