@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { getVisibilityScopedRole } from "./video/visibility";
 import * as storageService from "../services/storageService";
+import * as onDemandYouTube from "../services/onDemandYouTube";
 import { getWildcardParam, getStringParam } from "../utils/paramUtils";
 import { logger } from "../utils/logger";
 
@@ -40,22 +41,20 @@ const redirect = (res: Response, location: string): void => {
  *
  * Resolve a YouTube video id against the local library. 302s to the local
  * player page (/video/<id>) when the video exists and is visible to the
- * caller, and back to youtube.com when it is not.
+ * caller. Otherwise it queues an on-demand download and 302s to the SPA page
+ * (/watch/youtube/<id>) that waits for the local copy — the download, not
+ * the user, does the fetching, so playback happens locally without a manual
+ * download. If that download fails, the waiting page sends the browser back
+ * to youtube.com, keeping the takeover non-destructive.
  */
 export const redirectToVideo = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   const sourceVideoId = getStringParam(req.params.id) ?? "";
-  // A non-local video streams through the instance (same yt-dlp stack as
-  // regular downloads) instead of demanding a manual download first; the
-  // stream endpoint itself falls back to youtube.com when nothing playable
-  // can be served.
-  const fallbackUrl = `/from/youtube/stream/${encodeURIComponent(sourceVideoId)}`;
 
   if (!YOUTUBE_VIDEO_ID_PATTERN.test(sourceVideoId)) {
-    // Not a video id at all: straight back to YouTube, the stream endpoint
-    // would only repeat the check.
+    // Not a video id at all: straight back to YouTube.
     redirect(
       res,
       `https://www.youtube.com/watch?v=${encodeURIComponent(sourceVideoId)}`
@@ -88,7 +87,37 @@ export const redirectToVideo = async (
     return;
   }
 
-  redirect(res, fallbackUrl);
+  // Not in the library: queue an on-demand download (deduped while running)
+  // and send the browser to the MyTube page that waits for the local copy —
+  // no manual download required. The waiting page falls back to youtube.com
+  // if the download fails, so the takeover stays non-destructive.
+  onDemandYouTube.queueOnDemandDownload(sourceVideoId);
+  redirect(res, `/watch/youtube/${encodeURIComponent(sourceVideoId)}`);
+};
+
+/**
+ * GET /from/youtube/status/:sourceVideoId
+ *
+ * Poll target for the waiting page: reports whether the video is playable
+ * locally now (with its library id) and whether an on-demand download is
+ * currently queued for it.
+ */
+export const getYouTubeTakeoverStatus = (
+  req: Request,
+  res: Response
+): void => {
+  const sourceVideoId = getStringParam(req.params.id) ?? "";
+  if (!YOUTUBE_VIDEO_ID_PATTERN.test(sourceVideoId)) {
+    res.status(400).json({ error: "Invalid YouTube video id" });
+    return;
+  }
+  res.setHeader("Cache-Control", "no-store");
+  res.json(
+    onDemandYouTube.getYouTubeLocalStatus(
+      sourceVideoId,
+      getVisibilityScopedRole(req)
+    )
+  );
 };
 
 /**

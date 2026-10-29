@@ -18,6 +18,16 @@ const storageMocks = vi.hoisted(() => ({
   getVideoSummaries: vi.fn((): Array<Record<string, any>> => []),
 }));
 
+const onDemandMocks = vi.hoisted(() => ({
+  queueOnDemandDownload: vi.fn(),
+  getYouTubeLocalStatus: vi.fn(),
+}));
+
+vi.mock("../../services/onDemandYouTube", () => ({
+  queueOnDemandDownload: onDemandMocks.queueOnDemandDownload,
+  getYouTubeLocalStatus: onDemandMocks.getYouTubeLocalStatus,
+}));
+
 vi.mock("../../services/storageService", () => ({
   checkVideoDownloadBySourceId: storageMocks.checkVideoDownloadBySourceId,
   getVideoById: storageMocks.getVideoById,
@@ -25,6 +35,7 @@ vi.mock("../../services/storageService", () => ({
 }));
 
 import {
+  getYouTubeTakeoverStatus,
   normalizeYouTubeChannelPath,
   redirectToChannel,
   redirectToVideo,
@@ -33,6 +44,7 @@ import {
 const buildApp = (): express.Express => {
   const app = express();
   app.get("/from/youtube/video/:id", redirectToVideo);
+  app.get("/from/youtube/status/:id", getYouTubeTakeoverStatus);
   app.get("/from/youtube/channel/{*splat}", redirectToChannel);
   return app;
 };
@@ -42,6 +54,8 @@ describe("redirectToVideo", () => {
     visibilityMocks.getVisibilityScopedRole.mockClear();
     storageMocks.checkVideoDownloadBySourceId.mockReset();
     storageMocks.getVideoById.mockReset();
+    onDemandMocks.queueOnDemandDownload.mockClear();
+    onDemandMocks.getYouTubeLocalStatus.mockReset();
   });
 
   it("302s to the local player page when the video exists locally", async () => {
@@ -75,9 +89,10 @@ describe("redirectToVideo", () => {
     );
 
     expect(response.status).toBe(302);
-    // Non-local videos stream through the instance instead of demanding a
-    // manual download; the stream endpoint owns the youtube.com fallback.
-    expect(response.headers.location).toBe("/from/youtube/stream/dQw4w9WgXcQ");
+    // Non-local videos are queued for an on-demand download and the browser
+    // is sent to the MyTube page that waits for the local copy.
+    expect(response.headers.location).toBe("/watch/youtube/dQw4w9WgXcQ");
+    expect(onDemandMocks.queueOnDemandDownload).toHaveBeenCalledWith("dQw4w9WgXcQ");
     expect(storageMocks.getVideoById).not.toHaveBeenCalled();
   });
 
@@ -93,7 +108,8 @@ describe("redirectToVideo", () => {
     );
 
     expect(response.status).toBe(302);
-    expect(response.headers.location).toBe("/from/youtube/stream/6SxEj1cujQE");
+    expect(response.headers.location).toBe("/watch/youtube/6SxEj1cujQE");
+    expect(onDemandMocks.queueOnDemandDownload).toHaveBeenCalledWith("6SxEj1cujQE");
     expect(storageMocks.getVideoById).not.toHaveBeenCalled();
   });
 
@@ -110,7 +126,8 @@ describe("redirectToVideo", () => {
     );
 
     expect(response.status).toBe(302);
-    expect(response.headers.location).toBe("/from/youtube/stream/6SxEj1cujQE");
+    expect(response.headers.location).toBe("/watch/youtube/6SxEj1cujQE");
+    expect(onDemandMocks.queueOnDemandDownload).toHaveBeenCalledWith("6SxEj1cujQE");
   });
 
   it("falls back without consulting the library for non-video-id paths", async () => {
@@ -123,6 +140,7 @@ describe("redirectToVideo", () => {
       "https://www.youtube.com/watch?v=not-a-video-id"
     );
     expect(storageMocks.checkVideoDownloadBySourceId).not.toHaveBeenCalled();
+    expect(onDemandMocks.queueOnDemandDownload).not.toHaveBeenCalled();
   });
 
   it("never serves stale redirect hops from caches", async () => {

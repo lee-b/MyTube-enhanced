@@ -18,7 +18,7 @@ it is available for [Chrome](https://chromewebstore.google.com/detail/redirector
 
 | Path | Resolves against | Redirects to (local match) | Redirects to (no match) |
 | --- | --- | --- | --- |
-| `GET /from/youtube/video/<id>` | the library's download-tracking rows (`source_video_id`) | `/video/<local-id>` (the local player), or the stream proxy below when the video is not local | via the stream proxy |
+| `GET /from/youtube/video/<id>` | the library's download-tracking rows (`source_video_id`) | `/video/<local-id>` (the local player), or a waiting page that queues an automatic download | via the on-demand download |
 | `GET /from/youtube/channel/<path>` | the `channel_url`/author of library videos | `/author/<author>` (the local author page) | `https://www.youtube.com/<path>` |
 
 `<id>` is the 11-character YouTube video id, and `<path>` is the channel part
@@ -27,27 +27,31 @@ of a YouTube URL (`channel/UC...`, legacy `c/<name>`, or `@<handle>`).
 Notes:
 
 - Videos that are not in the library are not lost either: the video target
-  falls through to `GET /from/youtube/stream/<id>`, which resolves a playable
-  stream through the same yt-dlp stack the regular downloads use (cookies and
-  PO-token provider included) and pipes it through MyTube, so a click plays
-  locally without a manual download. When no playable stream can be served,
-  that endpoint hands the browser back to the original YouTube URL.
-- The takeover is therefore **non-destructive**: every failure path ends at
-  youtube.com, and nothing is lost by enabling it.
+  queues an **on-demand download** — the same yt-dlp stack, quality settings,
+  and DASH muxing as a manual download — and sends the browser to a MyTube
+  page (`/watch/youtube/<id>`) that polls until the local copy is ready and
+  then plays it in the local player. No manual download is required; the
+  first click does the work. Repeated clicks on the same video while a
+  download is running are deduped.
+- The takeover is therefore **non-destructive**: if the download fails or
+  takes too long (about five minutes), the waiting page offers the original
+  YouTube URL, and nothing is lost by enabling it.
 - The local player page is only served when the video is actually present and
   visible to the caller (a "deleted" download-tracking row, or a hidden video
-  for a visitor, falls through to the stream proxy).
+  for a visitor, goes through the on-demand download path instead).
 - Channel resolution relies on `channel_url`, which MyTube persists per video.
   A channel therefore resolves locally once at least one of its videos is in
   the library. `@<handle>` paths are matched against author display names,
   which usually equal the handle.
 - These routes answer with plain 302 navigations and are not gated behind
   login; visibility scoping still applies to what they may reveal.
-- `GET /from/youtube/stream/<id>` streams the media itself (it is the final
-  fallback of the video target). It supports HTTP Range requests for seeking,
-  resolves media URLs through yt-dlp with a short-lived cache, and retries
-  once on upstream failure (expired media URLs) before giving the browser
-  back to youtube.com.
+- `GET /from/youtube/stream/<id>` streams raw media bytes when a progressive
+  (video+audio) format exists; it supports HTTP Range requests and retries
+  once on upstream failure before handing the browser back to youtube.com.
+  Most current YouTube videos only offer split DASH/HLS tracks, so the video
+  target normally uses the on-demand download path instead — the stream
+  endpoint remains the byte-level fallback for sources that do serve
+  progressive formats.
 
 ## Setting up Redirector
 

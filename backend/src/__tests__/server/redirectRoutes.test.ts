@@ -3,6 +3,9 @@ import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
 
 const redirectControllerMocks = vi.hoisted(() => ({
+  getYouTubeTakeoverStatus: vi.fn((_req, res) => {
+    res.json({ local: false, queued: true });
+  }),
   redirectToVideo: vi.fn((_req, res) => {
     res.setHeader("Cache-Control", "no-store");
     res.redirect("/video/local-id");
@@ -14,6 +17,7 @@ const redirectControllerMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../../controllers/redirectController", () => ({
+  getYouTubeTakeoverStatus: redirectControllerMocks.getYouTubeTakeoverStatus,
   redirectToVideo: redirectControllerMocks.redirectToVideo,
   redirectToChannel: redirectControllerMocks.redirectToChannel,
   normalizeYouTubeChannelPath: vi.fn((path: string) => path),
@@ -31,6 +35,16 @@ describe("registerRedirectRoutes", () => {
     expect(response.status).toBe(302);
     expect(response.headers.location).toBe("/video/local-id");
     expect(redirectControllerMocks.redirectToVideo).toHaveBeenCalledTimes(1);
+  });
+
+  it("serves /from/youtube/status/:id without needing /api auth", async () => {
+    const app = express();
+    registerRedirectRoutes(app);
+    const response = await request(app).get("/from/youtube/status/6SxEj1cujQE");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ local: false, queued: true });
+
   });
 
   it("serves the wildcard channel route and preserves the full channel path", async () => {
