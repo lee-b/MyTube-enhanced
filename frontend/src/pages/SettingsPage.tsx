@@ -17,6 +17,7 @@ import { useLocation } from 'react-router';
 import CollapsibleSection from '../components/CollapsibleSection';
 import ConfirmationModal from '../components/ConfirmationModal';
 import AdvancedSettings from '../components/Settings/AdvancedSettings';
+import RedirectorSettings from '../components/Settings/RedirectorSettings';
 import BasicSettings from '../components/Settings/BasicSettings';
 import CloudDriveSettings from '../components/Settings/CloudDriveSettings';
 import CloudflareSettings from '../components/Settings/CloudflareSettings';
@@ -626,6 +627,7 @@ const SettingsPage: React.FC = () => {
 
     const renderIntegrationsContent = () => (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <RedirectorSettings />
             <RssFeedSettings />
             <AdvancedSettings
                 debugMode={debugMode}
