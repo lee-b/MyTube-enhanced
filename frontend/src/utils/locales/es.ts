@@ -40,6 +40,7 @@ export const es = {
   // Home
   pasteUrl: "Pegar URL de video o colección",
   download: "Descargar",
+  view: "Ver",
   search: "Buscar",
   recentDownloads: "Descargas Recientes",
   noDownloads: "Sin descargas aún",

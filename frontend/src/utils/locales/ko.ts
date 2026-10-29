@@ -38,6 +38,7 @@ export const ko = {
   // Home
   pasteUrl: "동영상 또는 컬렉션 URL 붙여넣기",
   download: "다운로드",
+  view: "보기",
   search: "검색",
   recentDownloads: "최근 다운로드",
   noDownloads: "아직 다운로드 없음",

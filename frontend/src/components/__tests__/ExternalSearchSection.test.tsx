@@ -21,6 +21,28 @@ const bilibiliResult: VideoSearchResult = {
     source: 'bilibili',
 };
 
+const youtubeResult: VideoSearchResult = {
+    id: '6SxEj1cujQE',
+    title: 'A YouTube video',
+    author: 'PowerfulJRE',
+    channelId: 'UCzQUP1qoWDoEbmsQxvdjxgQ',
+    thumbnailUrl: 'https://i.ytimg.com/thumb.jpg',
+    duration: 754,
+    viewCount: 4321,
+    sourceUrl: 'https://www.youtube.com/watch?v=6SxEj1cujQE',
+    source: 'youtube',
+};
+
+const renderYoutubeSection = (overrides: Partial<React.ComponentProps<typeof ExternalSearchSection>> = {}) =>
+    renderSection({
+        source: 'youtube',
+        heading: 'fromYouTube',
+        loadingLabel: 'loadingYouTubeResults',
+        emptyLabel: 'noYouTubeResults',
+        results: [youtubeResult],
+        ...overrides,
+    });
+
 const renderSection = (overrides: Partial<React.ComponentProps<typeof ExternalSearchSection>> = {}) => {
     const props: React.ComponentProps<typeof ExternalSearchSection> = {
         source: 'bilibili',
@@ -120,5 +142,43 @@ describe('ExternalSearchSection', () => {
         fireEvent.click(screen.getByRole('button', { name: /more/i }));
 
         expect(props.onLoadMore).toHaveBeenCalled();
+    });
+
+    describe('youtube local-first links', () => {
+        it('links the video title to the takeover target for YouTube results', () => {
+            renderYoutubeSection();
+
+            const link = screen.getByRole('link', { name: 'A YouTube video' });
+            expect(link).toHaveAttribute('href', '/from/youtube/video/6SxEj1cujQE');
+        });
+
+        it('links the author to the channel takeover target when the channel id is known', () => {
+            renderYoutubeSection();
+
+            const link = screen.getByRole('link', { name: 'PowerfulJRE' });
+            expect(link).toHaveAttribute('href', '/from/youtube/channel/UCzQUP1qoWDoEbmsQxvdjxgQ');
+        });
+
+        it('leaves the author as plain text when no channel id came back', () => {
+            renderYoutubeSection({ results: [{ ...youtubeResult, channelId: undefined }] });
+
+            expect(screen.getByText('PowerfulJRE')).toBeInTheDocument();
+            expect(screen.queryByRole('link', { name: 'PowerfulJRE' })).not.toBeInTheDocument();
+        });
+
+        it('adds a View button routing to the takeover target next to Download', () => {
+            renderYoutubeSection();
+
+            // MUI renders the Button as an anchor because it carries a href.
+            const view = screen.getByRole('link', { name: /view/i });
+            expect(view).toHaveAttribute('href', '/from/youtube/video/6SxEj1cujQE');
+        });
+
+        it('keeps Bilibili cards download-only', () => {
+            renderSection();
+
+            expect(screen.queryByRole('button', { name: /view/i })).not.toBeInTheDocument();
+            expect(screen.queryByRole('link', { name: 'A Bilibili video' })).not.toBeInTheDocument();
+        });
     });
 });

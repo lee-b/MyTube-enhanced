@@ -37,6 +37,7 @@ export const ar = {
   // Home
   pasteUrl: "لصق رابط الفيديو أو المجموعة",
   download: "تحميل",
+  view: "مشاهدة",
   search: "بحث",
   recentDownloads: "التحميلات الأخيرة",
   noDownloads: "لا توجد تحميلات بعد",

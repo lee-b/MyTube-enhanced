@@ -38,6 +38,7 @@ export const ja = {
   // Home
   pasteUrl: "動画またはコレクションのURLを貼り付け",
   download: "ダウンロード",
+  view: "視聴",
   search: "検索",
   recentDownloads: "最近のダウンロード",
   noDownloads: "ダウンロードはまだありません",

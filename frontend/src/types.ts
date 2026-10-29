@@ -44,6 +44,9 @@ export interface VideoSearchResult {
   id: string;
   title: string;
   author?: string;
+  /** YouTube channel id, when the search backend returned one. Lets result
+   * cards link the author to the /from/youtube/channel/... takeover target. */
+  channelId?: string;
   thumbnailUrl?: string;
   duration?: number | string;
   viewCount?: number;
