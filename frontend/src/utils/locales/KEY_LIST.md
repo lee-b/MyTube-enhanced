@@ -11,14 +11,14 @@ UPDATE_KEY_LIST=1 npx vitest run src/utils/locales/__tests__/localeParity.test.t
 
 This list is intentionally unnumbered. When new keys are inserted, only the local section order changes.
 
-Total keys: 1397
+Total keys: 1401
 
 ## Summary
 
 | Section | Keys | First Key | Last Key |
 | --- | ---: | --- | --- |
 | Header | 11 | `myTube` | `instruction` |
-| Home | 28 | `pasteUrl` | `views` |
+| Home | 30 | `pasteUrl` | `views` |
 | Settings | 4 | `general` | `downloadSettings` |
 | Settings Categories | 247 | `interfaceDisplay` | `enterNewTagName` |
 | Database | 38 | `database` | `cleanupTempFilesConfirmMessage` |
@@ -42,7 +42,7 @@ Total keys: 1397
 | Batch Download | 6 | `batchDownload` | `addBatchTasks` |
 | Subscriptions | 60 | `subscribeToAuthor` | `clear` |
 | Subscription Retention | 11 | `retentionDays` | `retentionDaysUpdateFailed` |
-| Auto Delete (library-wide age-based cleanup) | 15 | `autoDelete` | `videoUnlocked` |
+| Auto Delete (library-wide age-based cleanup) | 17 | `autoDelete` | `videoUnlocked` |
 | Per-subscription yt-dlp config override (issue #345) | 5 | `editYtdlpConfigOverride` | `ytdlpConfigOverrideUpdateFailed` |
 | Per-subscription filename-template override (issue #368) | 10 | `subscriptionFilenameTemplate` | `subscriptionFilenameTemplateUpdateFailed` |
 | Subscription Pause/Resume | 12 | `pause` | `viaContinuousDownload` |
@@ -86,6 +86,8 @@ Total keys: 1397
 | --- |
 | `pasteUrl` |
 | `download` |
+| `markWatched` |
+| `markUnwatched` |
 | `search` |
 | `recentDownloads` |
 | `noDownloads` |
@@ -1070,6 +1072,8 @@ Total keys: 1397
 | `lockVideo` |
 | `unlockVideo` |
 | `videoLocked` |
+| `videoMarkedWatched` |
+| `videoMarkedUnwatched` |
 | `videoUnlocked` |
 
 ### Per-subscription yt-dlp config override (issue #345)

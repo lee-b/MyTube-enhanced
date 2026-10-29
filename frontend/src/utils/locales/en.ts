@@ -16,6 +16,8 @@ export const en = {
   // Home
   pasteUrl: "Paste video or collection URL",
   download: "Download",
+  markWatched: "Mark watched",
+  markUnwatched: "Mark unwatched",
   search: "Search",
   recentDownloads: "Recent Downloads",
   noDownloads: "No downloads yet",
@@ -1085,6 +1087,8 @@ export const en = {
   lockVideo: "Lock (protect from auto-delete)",
   unlockVideo: "Unlock (allow auto-delete)",
   videoLocked: "Video locked — protected from auto-delete",
+  videoMarkedWatched: "Video marked watched",
+  videoMarkedUnwatched: "Video marked unwatched",
   videoUnlocked: "Video unlocked",
 
   // Per-subscription yt-dlp config override (issue #345)

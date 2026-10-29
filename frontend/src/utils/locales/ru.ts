@@ -22,6 +22,8 @@ export const ru = {
   lockVideo: "Заблокировать (защитить от автоудаления)",
   unlockVideo: "Разблокировать (разрешить автоудаление)",
   videoLocked: "Видео заблокировано — защищено от автоудаления",
+  videoMarkedWatched: "Видео отмечено как просмотренное",
+  videoMarkedUnwatched: "С видео снята отметка просмотра",
   videoUnlocked: "Видео разблокировано",
   manage: "Управление",
   settings: "Настройки",
@@ -40,6 +42,8 @@ export const ru = {
   // Home
   pasteUrl: "Вставьте URL видео или коллекции",
   download: "Скачать",
+  markWatched: "Отметить просмотренным",
+  markUnwatched: "Снять отметку просмотра",
   search: "Поиск",
   recentDownloads: "Недавние загрузки",
   noDownloads: "Загрузок пока нет",

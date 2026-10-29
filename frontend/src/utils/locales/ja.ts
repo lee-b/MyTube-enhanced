@@ -21,6 +21,8 @@ export const ja = {
   lockVideo: "ロック（自動削除から保護）",
   unlockVideo: "ロック解除（自動削除を許可）",
   videoLocked: "動画をロックしました — 自動削除から保護されます",
+  videoMarkedWatched: "動画を視聴済みにしました",
+  videoMarkedUnwatched: "動画を未視聴にしました",
   videoUnlocked: "動画のロックを解除しました",
   manage: "管理",
   settings: "設定",
@@ -38,6 +40,8 @@ export const ja = {
   // Home
   pasteUrl: "動画またはコレクションのURLを貼り付け",
   download: "ダウンロード",
+  markWatched: "視聴済みにする",
+  markUnwatched: "未視聴にする",
   search: "検索",
   recentDownloads: "最近のダウンロード",
   noDownloads: "ダウンロードはまだありません",

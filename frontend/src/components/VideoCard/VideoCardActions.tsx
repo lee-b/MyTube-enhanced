@@ -73,6 +73,22 @@ export const VideoCardActions: React.FC<VideoCardActionsProps> = ({
         }
     };
 
+    const [isTogglingWatched, setIsTogglingWatched] = React.useState(false);
+    const isWatched = (video.viewCount ?? 0) > 0;
+
+    const handleToggleWatched = async () => {
+        if (!video.id || isTogglingWatched) return;
+        setIsTogglingWatched(true);
+        try {
+            const result = await updateVideo(video.id, { watched: !isWatched });
+            if (!result.success) {
+                showSnackbar(result.error || t('error'), 'error');
+            }
+        } finally {
+            setIsTogglingWatched(false);
+        }
+    };
+
     // Calculate collections that contain THIS video
     const currentVideoCollections = allCollections.filter(c => c.videos.includes(video.id));
 
@@ -129,6 +145,9 @@ export const VideoCardActions: React.FC<VideoCardActionsProps> = ({
                     isTogglingLock={isTogglingLock}
                     onToggleLock={handleToggleLock}
                     isLocked={isLocked}
+                    onToggleWatched={handleToggleWatched}
+                    isTogglingWatched={isTogglingWatched}
+                    isWatched={isWatched}
                     onAddTag={() => setShowTagsModal(true)}
                     video={video}
                     sx={{

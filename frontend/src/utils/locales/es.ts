@@ -22,6 +22,8 @@ export const es = {
   lockVideo: "Bloquear (proteger de la eliminación automática)",
   unlockVideo: "Desbloquear (permitir la eliminación automática)",
   videoLocked: "Vídeo bloqueado: protegido de la eliminación automática",
+  videoMarkedWatched: "Video marcado como visto",
+  videoMarkedUnwatched: "Video marcado como no visto",
   videoUnlocked: "Vídeo desbloqueado",
   manage: "Gestionar",
   settings: "Configuración",
@@ -40,6 +42,8 @@ export const es = {
   // Home
   pasteUrl: "Pegar URL de video o colección",
   download: "Descargar",
+  markWatched: "Marcar como visto",
+  markUnwatched: "Marcar como no visto",
   search: "Buscar",
   recentDownloads: "Descargas Recientes",
   noDownloads: "Sin descargas aún",

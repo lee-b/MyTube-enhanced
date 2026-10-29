@@ -242,6 +242,7 @@ const VideoPlayer: React.FC = () => {
         tagsMutation,
         visibilityMutation,
         lockMutation,
+        watchedMutation,
         deleteMutation,
         uploadSubtitleMutation,
         deleteSubtitleMutation
@@ -464,6 +465,11 @@ const VideoPlayer: React.FC = () => {
         if (!id || !video) return;
         const nextLocked = video.autoDeleteLocked === 1 ? null : 1;
         await lockMutation.mutateAsync(nextLocked);
+    };
+
+    const handleToggleWatched = async () => {
+        if (!id || !video) return;
+        await watchedMutation.mutateAsync((video.viewCount ?? 0) <= 0);
     };
 
     const executeRemoveFromCollection = async (collectionId: string) => {
@@ -837,6 +843,9 @@ const VideoPlayer: React.FC = () => {
                             onUnsubscribe={handleUnsubscribe}
                             onToggleVisibility={handleToggleVisibility}
                             onToggleLock={handleToggleLock}
+                            onToggleWatched={handleToggleWatched}
+                            isTogglingWatched={watchedMutation.isPending}
+                            isWatched={(video.viewCount ?? 0) > 0}
                             onSeek={handleDescriptionSeek}
                         />
 

@@ -19,6 +19,9 @@ interface VideoKebabMenuButtonsProps {
     isTogglingLock?: boolean;
     onToggleLock?: () => void;
     isLocked?: boolean;
+    onToggleWatched?: () => void;
+    isTogglingWatched?: boolean;
+    isWatched?: boolean;
     onAddTag?: () => void;
     video?: { visibility?: number };
     sx?: any;
@@ -35,6 +38,9 @@ const VideoKebabMenuButtons: React.FC<VideoKebabMenuButtonsProps> = ({
     isTogglingLock = false,
     onToggleLock,
     isLocked = false,
+    onToggleWatched,
+    isTogglingWatched = false,
+    isWatched = false,
     onAddTag,
     video,
     sx
@@ -93,6 +99,9 @@ const VideoKebabMenuButtons: React.FC<VideoKebabMenuButtonsProps> = ({
                         isTogglingLock={isTogglingLock}
                         onToggleLock={onToggleLock}
                         isLocked={isLocked}
+                        onToggleWatched={onToggleWatched}
+                        isTogglingWatched={isTogglingWatched}
+                        isWatched={isWatched}
                         onAddTag={onAddTag}
                         video={video}
                     />

@@ -21,6 +21,8 @@ export const ko = {
   lockVideo: "잠금(자동 삭제 방지)",
   unlockVideo: "잠금 해제(자동 삭제 허용)",
   videoLocked: "동영상 잠금 — 자동 삭제로부터 보호됨",
+  videoMarkedWatched: "동영상을 시청 완료로 표시했습니다",
+  videoMarkedUnwatched: "동영상을 시청 전으로 표시했습니다",
   videoUnlocked: "동영상 잠금 해제됨",
   manage: "관리",
   settings: "설정",
@@ -38,6 +40,8 @@ export const ko = {
   // Home
   pasteUrl: "동영상 또는 컬렉션 URL 붙여넣기",
   download: "다운로드",
+  markWatched: "시청 완료로 표시",
+  markUnwatched: "시청 전으로 표시",
   search: "검색",
   recentDownloads: "최근 다운로드",
   noDownloads: "아직 다운로드 없음",

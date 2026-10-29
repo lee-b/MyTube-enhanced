@@ -29,6 +29,8 @@ export interface Video {
   description?: string;
   visibility?: number; // 1 = visible, 0 = hidden
   autoDeleteLocked?: number | null; // 1 = locked (protected from auto-delete); null/0 = unlocked
+  /** Request-only field for the watched/unwatched toggle (PUT /videos/:id); never stored. */
+  watched?: boolean;
   signedUrl?: string; // Pre-signed URL for cloud video
   signedThumbnailUrl?: string; // Pre-signed URL for cloud thumbnail
   authorAvatarFilename?: string;

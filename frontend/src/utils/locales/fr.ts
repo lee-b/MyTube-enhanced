@@ -22,6 +22,8 @@ export const fr = {
   lockVideo: "Verrouiller (protéger de la suppression automatique)",
   unlockVideo: "Déverrouiller (autoriser la suppression automatique)",
   videoLocked: "Vidéo verrouillée — protégée de la suppression automatique",
+  videoMarkedWatched: "Vidéo marquée comme vue",
+  videoMarkedUnwatched: "Vidéo marquée comme non vue",
   videoUnlocked: "Vidéo déverrouillée",
   manage: "Gérer",
   settings: "Paramètres",
@@ -40,6 +42,8 @@ export const fr = {
   // Home
   pasteUrl: "Coller l'URL de la vidéo ou de la collection",
   download: "Télécharger",
+  markWatched: "Marquer comme vu",
+  markUnwatched: "Marquer comme non vu",
   search: "Rechercher",
   recentDownloads: "Téléchargements récents",
   noDownloads: "Aucun téléchargement pour le moment",

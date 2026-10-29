@@ -373,12 +373,33 @@ export const updateVideoDetails = async (
     }
     allowedUpdates.autoDeleteLocked = isLocked ? 1 : null;
   }
+  if (updates.watched !== undefined) {
+    // Watched/unwatched toggle. "Watched" means the video has been played at
+    // least once: viewCount > 0 plus a lastPlayedAt timestamp. Re-marking an
+    // already-watched video must not inflate its view count, and unwatching
+    // resets both fields. See frontend home-grid watched filter.
+    if (typeof updates.watched !== "boolean") {
+      throw new ValidationError(
+        "watched must be a boolean",
+        "watched"
+      );
+    }
+    if (updates.watched) {
+      const existing = storageService.getVideoById(id);
+      allowedUpdates.viewCount = Math.max(existing?.viewCount ?? 0, 1);
+      allowedUpdates.lastPlayedAt = Date.now();
+    } else {
+      allowedUpdates.viewCount = 0;
+      allowedUpdates.lastPlayedAt = null;
+    }
+  }
   // Add other allowed fields here if needed in the future
 
   if (Object.keys(allowedUpdates).length === 0) {
     throw new ValidationError("No valid updates provided", "body");
   }
 
+  delete allowedUpdates.watched;
   const updatedVideo = storageService.updateVideo(id, allowedUpdates);
 
   if (!updatedVideo) {

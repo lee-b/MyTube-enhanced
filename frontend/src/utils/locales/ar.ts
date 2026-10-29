@@ -21,6 +21,8 @@ export const ar = {
   lockVideo: "قفل (حماية من الحذف التلقائي)",
   unlockVideo: "إلغاء القفل (السماح بالحذف التلقائي)",
   videoLocked: "تم قفل الفيديو — محمي من الحذف التلقائي",
+  videoMarkedWatched: "تم تمييز الفيديو كمشاهد",
+  videoMarkedUnwatched: "تم تمييز الفيديو كغير مشاهد",
   videoUnlocked: "تم إلغاء قفل الفيديو",
   manage: "إدارة",
   settings: "الإعدادات",
@@ -37,6 +39,8 @@ export const ar = {
   // Home
   pasteUrl: "لصق رابط الفيديو أو المجموعة",
   download: "تحميل",
+  markWatched: "تمييز كمشاهد",
+  markUnwatched: "تمييز كغير مشاهد",
   search: "بحث",
   recentDownloads: "التحميلات الأخيرة",
   noDownloads: "لا توجد تحميلات بعد",

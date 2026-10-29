@@ -20,6 +20,8 @@ export const zh = {
   lockVideo: "锁定（防止自动删除）",
   unlockVideo: "解锁（允许自动删除）",
   videoLocked: "视频已锁定——已防止自动删除",
+  videoMarkedWatched: "视频已标记为已观看",
+  videoMarkedUnwatched: "视频已标记为未观看",
   videoUnlocked: "视频已解锁",
   manage: "管理",
   settings: "设置",
@@ -36,6 +38,8 @@ export const zh = {
   // Home
   pasteUrl: "粘贴视频或合集链接",
   download: "下载",
+  markWatched: "标记为已观看",
+  markUnwatched: "标记为未观看",
   search: "搜索",
   recentDownloads: "最近下载",
   noDownloads: "暂无下载",

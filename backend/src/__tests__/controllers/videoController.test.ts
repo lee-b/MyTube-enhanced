@@ -603,6 +603,60 @@ describe("VideoController", () => {
       expect(status).toHaveBeenCalledWith(200);
     });
 
+    it("marks a video watched by setting viewCount and lastPlayedAt", () => {
+      req.params = { id: "1" };
+      req.body = { watched: true };
+      (storageService.getVideoById as any).mockReturnValue({ id: "1", viewCount: 0 });
+      const mockVideo = { id: "1" };
+      (storageService.updateVideo as any).mockReturnValue(mockVideo);
+
+      updateVideoDetails(req as Request, res as Response);
+
+      const updates = (storageService.updateVideo as any).mock.calls[0][1];
+      expect(updates.viewCount).toBe(1);
+      expect(updates.lastPlayedAt).toBeGreaterThan(0);
+      // The transient request field must never reach the database layer.
+      expect(updates.watched).toBeUndefined();
+      expect(status).toHaveBeenCalledWith(200);
+    });
+
+    it("does not inflate the view count when re-marking watched", () => {
+      req.params = { id: "1" };
+      req.body = { watched: true };
+      (storageService.getVideoById as any).mockReturnValue({ id: "1", viewCount: 7 });
+
+      updateVideoDetails(req as Request, res as Response);
+
+      const updates = (storageService.updateVideo as any).mock.calls[0][1];
+      expect(updates.viewCount).toBe(7);
+    });
+
+    it("marks a video unwatched by resetting viewCount and lastPlayedAt", () => {
+      req.params = { id: "1" };
+      req.body = { watched: false };
+      (storageService.updateVideo as any).mockReturnValue({ id: "1" });
+
+      updateVideoDetails(req as Request, res as Response);
+
+      expect(storageService.updateVideo).toHaveBeenCalledWith("1", {
+        viewCount: 0,
+        lastPlayedAt: null,
+      });
+      expect(status).toHaveBeenCalledWith(200);
+    });
+
+    it("rejects non-boolean watched values", async () => {
+      req.params = { id: "1" };
+      req.body = { watched: "yes" };
+
+      try {
+        await updateVideoDetails(req as Request, res as Response);
+        expect.fail("Should have thrown");
+      } catch (error: any) {
+        expect(error.name).toBe("ValidationError");
+      }
+    });
+
     it("invalidates recommendation signals when visibility changes", () => {
       req.params = { id: "1" };
       req.body = { visibility: 0 };
