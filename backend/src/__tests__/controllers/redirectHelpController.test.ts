@@ -5,10 +5,12 @@ import {
   buildRedirectorHelpHtml,
   buildRedirectorRulesJson,
   getRedirectorHelp,
+  getRedirectorRulesFile,
 } from "../../controllers/redirectHelpController";
 
 const app = express();
 app.get("/from/help", getRedirectorHelp);
+app.get("/from/rules.json", getRedirectorRulesFile);
 
 const extractRulesJson = (html: string): string => {
   const match = html.match(
@@ -85,12 +87,40 @@ describe("getRedirectorHelp", () => {
   });
   it("offers the rules JSON as a downloadable file, not just a copy", async () => {
     const html = await fetchHelp();
-    // Redirector's import dialog opens a file picker, so the page must hand
-    // out a real file download in addition to the clipboard copy.
-    expect(html).toContain('id="download-rules-json"');
-    expect(html).toContain("mytube-redirector-rules.json");
-    expect(html).toContain("URL.createObjectURL");
-    expect(html).toContain('application/json');
+    // A plain server-side link survives hardened browsers (e.g. LibreWolf
+    // blocks scripted Blob downloads), unlike a Blob + createObjectURL hack.
+    const link = html.match(/<a id="download-rules-json"[^>]*>/)?.[0] ?? "";
+    expect(link).toContain('href="/from/rules.json"');
+    expect(link).toContain("mytube-redirector-rules.json");
+    expect(html).not.toContain("URL.createObjectURL");
+  });
+
+  it("serves the rules JSON as an attachment with the origin filled in", async () => {
+    const response = await request(app)
+      .get("/from/rules.json")
+      .set("Host", "mintbox.lan:5551");
+
+    expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toContain("application/json");
+    expect(response.headers["content-disposition"]).toBe(
+      'attachment; filename="mytube-redirector-rules.json"'
+    );
+    expect(response.headers["cache-control"]).toBe("no-store");
+
+    const rules = JSON.parse(response.text) as Array<Record<string, unknown>>;
+    expect(rules).toHaveLength(4);
+    // __ORIGIN__ is filled from the request's own host so the file imports
+    // as-is, with no client-side fill step.
+    expect(response.text).not.toContain("__ORIGIN__");
+    expect(response.text).toContain("http://mintbox.lan:5551");
+    for (const rule of rules) {
+      expect(rule).toEqual({
+        name: expect.any(String),
+        from: expect.any(String),
+        to: expect.any(String),
+        testUrl: expect.any(String),
+      });
+    }
   });
 
   it("fills rule targets from the browser's own origin at runtime", async () => {

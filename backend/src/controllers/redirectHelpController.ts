@@ -76,17 +76,27 @@ const escapeHtml = (value: string): string =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
-export const buildRedirectorRulesJson = (): string =>
+export const buildRedirectorRulesJson = (origin?: string): string =>
   JSON.stringify(
     REDIRECTOR_RULES.map(({ name, from, to, testUrl }) => ({
       name,
       from,
-      to,
+      // The page and the downloaded file both fill the host-agnostic
+      // __ORIGIN__ placeholder with the browser-facing origin so the rules
+      // work behind any host/port/proxy.
+      to: origin ? to.replace("__ORIGIN__", origin) : to,
       testUrl,
     })),
     null,
     2
   );
+
+const browserFacingOrigin = (req: Request): string => {
+  const host = Array.isArray(req.headers.host)
+    ? req.headers.host[0]
+    : req.headers.host;
+  return `${req.protocol}://${host ?? ""}`;
+};
 
 const renderRuleRow = (rule: RedirectorRule, index: number): string => `
       <tr>
@@ -168,10 +178,11 @@ export const buildRedirectorHelpHtml = (): string => `
   </table>
   <p>
     <button type="button" id="copy-rules-json">Copy all rules as JSON</button>
-    <button type="button" id="download-rules-json">Download rules JSON</button>
+    <a id="download-rules-json" href="/from/rules.json" download="mytube-redirector-rules.json">Download rules JSON</a>
     <span class="muted">— both import into Redirector's options page (Import under
-    the rules menu). Redirector prefers a file: use the download button to get
-    <code>mytube-redirector-rules.json</code> and pick it in the import dialog.</span>
+    the rules menu). Redirector prefers a file: the download link serves
+    <code>mytube-redirector-rules.json</code> with the download already filled
+    in for this instance; pick it in the import dialog.</span>
   </p>
 
   <h2>Notes</h2>
@@ -210,22 +221,6 @@ export const buildRedirectorHelpHtml = (): string => `
           copyText(exportRulesJson());
         });
       }
-      var downloadButton = document.getElementById('download-rules-json');
-      if (downloadButton) {
-        downloadButton.addEventListener('click', function () {
-          // Redirector's import dialog opens a file picker, so a real file
-          // download beats the clipboard: the rules can be picked directly.
-          var blob = new Blob([exportRulesJson()], { type: 'application/json' });
-          var url = URL.createObjectURL(blob);
-          var link = document.createElement('a');
-          link.href = url;
-          link.download = 'mytube-redirector-rules.json';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        });
-      }
       document.querySelectorAll('button.copy').forEach(function (button) {
         button.addEventListener('click', function () {
           var index = Number(button.getAttribute('data-rule-index'));
@@ -246,4 +241,29 @@ export const getRedirectorHelp = (
 ): void => {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.send(buildRedirectorHelpHtml());
+};
+
+/**
+ * GET /from/rules.json
+ *
+ * Serves the Redirector rules as a real file download (Content-Disposition:
+ * attachment) instead of relying on a scripted Blob download, which some
+ * hardened browsers (e.g. LibreWolf) block. The __ORIGIN__ placeholders are
+ * filled with the request's own protocol and host — since the browser
+ * downloads the file from this instance, that is exactly the origin its
+ * Redirector rules should target.
+ */
+export const getRedirectorRulesFile = (
+  req: Request,
+  res: Response
+): void => {
+  const body = buildRedirectorRulesJson(browserFacingOrigin(req));
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader(
+    "Content-Disposition",
+    'attachment; filename="mytube-redirector-rules.json"'
+  );
+  // A one-off import artifact; no cache should serve it.
+  res.setHeader("Cache-Control", "no-store");
+  res.send(body);
 };

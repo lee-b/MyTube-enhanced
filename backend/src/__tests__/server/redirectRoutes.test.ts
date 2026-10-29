@@ -37,6 +37,15 @@ describe("registerRedirectRoutes", () => {
     expect(redirectControllerMocks.redirectToVideo).toHaveBeenCalledTimes(1);
   });
 
+  it("serves /from/rules.json as a download without needing /api auth", async () => {
+    const app = express();
+    registerRedirectRoutes(app);
+    const response = await request(app).get("/from/rules.json");
+
+    expect(response.status).toBe(200);
+    expect(response.headers["content-disposition"]).toContain("attachment");
+  });
+
   it("serves /from/youtube/status/:id without needing /api auth", async () => {
     const app = express();
     registerRedirectRoutes(app);

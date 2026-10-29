@@ -1,6 +1,9 @@
 import express, { Express } from "express";
 import { getYouTubeTakeoverStatus, redirectToChannel, redirectToVideo } from "../controllers/redirectController";
-import { getRedirectorHelp } from "../controllers/redirectHelpController";
+import {
+  getRedirectorHelp,
+  getRedirectorRulesFile,
+} from "../controllers/redirectHelpController";
 import { streamYouTubeVideo } from "../controllers/streamProxyController";
 
 /**
@@ -19,6 +22,7 @@ export function registerRedirectRoutes(app: Express): void {
   router.get("/from/youtube/video/:id", redirectToVideo);
   router.get("/from/youtube/channel/{*splat}", redirectToChannel);
   router.get("/from/help", getRedirectorHelp);
+  router.get("/from/rules.json", getRedirectorRulesFile);
 
   app.use(router);
 }
