@@ -167,7 +167,10 @@ export const buildRedirectorHelpHtml = (): string => `
   </table>
   <p>
     <button type="button" id="copy-rules-json">Copy all rules as JSON</button>
-    <span class="muted">— imports into Redirector's options page (Import under the rules menu).</span>
+    <button type="button" id="download-rules-json">Download rules JSON</button>
+    <span class="muted">— both import into Redirector's options page (Import under
+    the rules menu). Redirector prefers a file: use the download button to get
+    <code>mytube-redirector-rules.json</code> and pick it in the import dialog.</span>
   </p>
 
   <h2>Notes</h2>
@@ -195,12 +198,31 @@ export const buildRedirectorHelpHtml = (): string => `
         }
       };
       var rulesJson = document.getElementById('redirector-rules').textContent;
-      var button = document.getElementById('copy-rules-json');
-      if (button) {
-        button.addEventListener('click', function () {
-          copyText(JSON.stringify(JSON.parse(rulesJson).map(function (rule) {
-            return { name: rule.name, from: rule.from, to: rule.to.replace('__ORIGIN__', origin), testUrl: rule.testUrl };
-          }), null, 2));
+      var exportRulesJson = function () {
+        return JSON.stringify(JSON.parse(rulesJson).map(function (rule) {
+          return { name: rule.name, from: rule.from, to: rule.to.replace('__ORIGIN__', origin), testUrl: rule.testUrl };
+        }), null, 2);
+      };
+      var copyButton = document.getElementById('copy-rules-json');
+      if (copyButton) {
+        copyButton.addEventListener('click', function () {
+          copyText(exportRulesJson());
+        });
+      }
+      var downloadButton = document.getElementById('download-rules-json');
+      if (downloadButton) {
+        downloadButton.addEventListener('click', function () {
+          // Redirector's import dialog opens a file picker, so a real file
+          // download beats the clipboard: the rules can be picked directly.
+          var blob = new Blob([exportRulesJson()], { type: 'application/json' });
+          var url = URL.createObjectURL(blob);
+          var link = document.createElement('a');
+          link.href = url;
+          link.download = 'mytube-redirector-rules.json';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
         });
       }
       document.querySelectorAll('button.copy').forEach(function (button) {

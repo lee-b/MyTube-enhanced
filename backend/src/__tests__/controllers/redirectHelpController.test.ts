@@ -83,6 +83,15 @@ describe("getRedirectorHelp", () => {
     const rules = JSON.parse(extractRulesJson(html));
     expect(rules).toHaveLength(4);
   });
+  it("offers the rules JSON as a downloadable file, not just a copy", async () => {
+    const html = await fetchHelp();
+    // Redirector's import dialog opens a file picker, so the page must hand
+    // out a real file download in addition to the clipboard copy.
+    expect(html).toContain('id="download-rules-json"');
+    expect(html).toContain("mytube-redirector-rules.json");
+    expect(html).toContain("URL.createObjectURL");
+    expect(html).toContain('application/json');
+  });
 
   it("fills rule targets from the browser's own origin at runtime", async () => {
     const html = await fetchHelp();
