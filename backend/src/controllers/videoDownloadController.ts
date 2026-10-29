@@ -95,14 +95,29 @@ export const searchVideos = async (
   // targets and tell the user which cards are not local yet. The tracking
   // lookup is synchronous and cheap (an indexed select per result), and the
   // redirect controller applies the same visibility scoping these rows give.
+  const role = getVisibilityScopedRole(req);
   const resultsWithLocal = (results as Array<Record<string, any>>).map(
     (result) => {
       const check = storageService.checkVideoDownloadBySourceId(
         result.id,
         source,
         "video"
-      ) as { status?: string } | undefined;
-      return { ...result, local: check?.status === "exists" };
+      ) as { status?: string; videoId?: string } | undefined;
+      // The library id is only handed out when the local copy is actually
+      // visible to the caller, so the UI can safely offer actions that
+      // operate on the library video (delete) rather than just the takeover
+      // target.
+      const visibleLocalVideoId =
+        check?.status === "exists" &&
+        !!check.videoId &&
+        !!storageService.getVideoById(check.videoId, role)
+          ? check.videoId
+          : undefined;
+      return {
+        ...result,
+        local: check?.status === "exists",
+        localVideoId: visibleLocalVideoId,
+      };
     }
   );
 

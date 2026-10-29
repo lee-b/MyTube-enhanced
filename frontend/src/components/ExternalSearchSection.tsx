@@ -1,4 +1,4 @@
-import { Download, OndemandVideo, PlayArrow, YouTube } from '@mui/icons-material';
+import { DeleteOutline, Download, OndemandVideo, PlayArrow, YouTube } from '@mui/icons-material';
 import {
     Box,
     Button,
@@ -13,6 +13,7 @@ import {
     Typography
 } from '@mui/material';
 import React from 'react';
+import ConfirmationModal from './ConfirmationModal';
 import { useLanguage } from '../contexts/LanguageContext';
 import { VideoSearchResult } from '../types';
 import { neutral, overlay, platform } from '../theme/colors';
@@ -30,6 +31,10 @@ interface ExternalSearchSectionProps {
     loadingMore: boolean;
     onLoadMore: () => void;
     onDownload: (result: VideoSearchResult) => void;
+    /** Called with a result whose video is already in the library, after the
+     * user confirms the removal. Optional; when absent, locally-downloaded
+     * results keep the plain View/Download pair. */
+    onDelete?: (result: VideoSearchResult) => void;
     /** Ids of the results whose download request has not settled yet. */
     downloadingIds: ReadonlySet<string>;
 }
@@ -58,9 +63,11 @@ const ExternalSearchSection: React.FC<ExternalSearchSectionProps> = ({
     loadingMore,
     onLoadMore,
     onDownload,
+    onDelete,
     downloadingIds
 }) => {
     const { t } = useLanguage();
+    const [deletionTarget, setDeletionTarget] = React.useState<VideoSearchResult | null>(null);
     const sourceColor = source === 'bilibili' ? platform.bilibili : platform.youtube;
     const hasResults = results && results.length > 0;
     const isYoutube = source === 'youtube';
@@ -174,23 +181,35 @@ const ExternalSearchSection: React.FC<ExternalSearchSectionProps> = ({
                                                 {t('view')}
                                             </Button>
                                         )}
-                                        <Button
-                                            fullWidth
-                                            variant="contained"
-                                            startIcon={<Download />}
-                                            onClick={() => onDownload(result)}
-                                            // Per result rather than one shared
-                                            // id: two downloads can legitimately
-                                            // be queued at once, and a single id
-                                            // would drop the first card's
-                                            // spinner and let the same result be
-                                            // submitted twice.
-                                            loading={downloadingIds.has(result.id)}
-                                            disabled={downloadingIds.has(result.id)}
-                                            loadingPosition="start"
-                                        >
-                                            {t('download')}
-                                        </Button>
+                                        {isYoutube && result.local && result.localVideoId && onDelete ? (
+                                            <Button
+                                                fullWidth
+                                                variant="outlined"
+                                                color="error"
+                                                startIcon={<DeleteOutline />}
+                                                onClick={() => setDeletionTarget(result)}
+                                            >
+                                                {t('delete')}
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                fullWidth
+                                                variant="contained"
+                                                startIcon={<Download />}
+                                                onClick={() => onDownload(result)}
+                                                // Per result rather than one shared
+                                                // id: two downloads can legitimately
+                                                // be queued at once, and a single id
+                                                // would drop the first card's
+                                                // spinner and let the same result be
+                                                // submitted twice.
+                                                loading={downloadingIds.has(result.id)}
+                                                disabled={downloadingIds.has(result.id)}
+                                                loadingPosition="start"
+                                            >
+                                                {t('download')}
+                                            </Button>
+                                        )}
                                     </CardActions>
                                 </Card>
                             </Grid>
@@ -210,6 +229,18 @@ const ExternalSearchSection: React.FC<ExternalSearchSectionProps> = ({
             ) : (
                 <Typography color="text.secondary">{emptyLabel}</Typography>
             )}
+            <ConfirmationModal
+                isOpen={!!deletionTarget}
+                onClose={() => setDeletionTarget(null)}
+                onConfirm={() => {
+                    if (!deletionTarget) return;
+                    onDelete?.(deletionTarget);
+                }}
+                title={t('delete')}
+                message={`${t('confirmDelete')} "${deletionTarget?.title ?? ''}"?`}
+                confirmText={t('delete')}
+                isDanger
+            />
         </Box>
     );
 };
