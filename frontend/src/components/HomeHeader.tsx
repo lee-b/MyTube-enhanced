@@ -1,4 +1,4 @@
-import { Collections as CollectionsIcon, Delete as DeleteIcon, GridView, History, Sort, Star, ViewSidebar } from '@mui/icons-material';
+import { Collections as CollectionsIcon, Delete as DeleteIcon, GridView, History, Sort, Star, ViewSidebar, Visibility, VisibilityOff } from '@mui/icons-material';
 import { Box, Button, IconButton, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material';
 import React, { Suspense } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -47,6 +47,8 @@ interface HomeHeaderProps {
     sortAnchorEl: HTMLElement | null;
     onSortClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
     onSortClose: (option?: string) => void;
+    showWatched: boolean;
+    onShowWatchedChange: (show: boolean) => void;
 }
 
 export const HomeHeader: React.FC<HomeHeaderProps> = ({
@@ -59,7 +61,9 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
     sortOption,
     sortAnchorEl,
     onSortClick,
-    onSortClose
+    onSortClose,
+    showWatched,
+    onShowWatchedChange
 }) => {
     const { t } = useLanguage();
     const isFavorite = viewMode === 'favorite';
@@ -177,6 +181,24 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
                         pointerEvents: isFavorite ? 'none' : 'auto',
                     }}
                 >
+                    <Tooltip title={showWatched ? t('hideWatched') : t('showWatched')}>
+                        <IconButton
+                            aria-label={showWatched ? t('hideWatched') : t('showWatched')}
+                            size="small"
+                            // History already shows only watched videos and
+                            // collections/favorites are curated lists, so the
+                            // toggle only acts on the all-videos grid.
+                            disabled={viewMode !== 'all-videos'}
+                            onClick={() => onShowWatchedChange(!showWatched)}
+                            sx={{
+                                height: '100%',
+                                color: showWatched ? 'primary.main' : 'text.secondary',
+                                mr: { xs: 0.5, md: 1 }
+                            }}
+                        >
+                            {showWatched ? <Visibility fontSize="small" /> : <VisibilityOff fontSize="small" />}
+                        </IconButton>
+                    </Tooltip>
                     <Button
                         variant="outlined"
                         onClick={onSortClick}

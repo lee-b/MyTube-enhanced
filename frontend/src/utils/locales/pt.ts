@@ -48,6 +48,8 @@ export const pt = {
   browserRedirector: "Assumir navegação com Redirector",
   browserRedirectorDescription: "Assume a navegação do youtube.com: uma extensão de redirecionamento reescreve os links do YouTube para esta instância, servindo a cópia local quando existe (ou voltando ao youtube.com).",
   browserRedirectorOpenGuide: "Abrir o guia de configuração do Redirector",
+  showWatched: "Mostrar assistidos",
+  hideWatched: "Ocultar assistidos",
   search: "Pesquisar",
   recentDownloads: "Downloads Recentes",
   noDownloads: "Nenhum download ainda",

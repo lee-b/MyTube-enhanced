@@ -48,6 +48,8 @@ export const es = {
   browserRedirector: "Toma de control con Redirector",
   browserRedirectorDescription: "Toma el control de la navegación de youtube.com: una extensión de redirección reescribe los enlaces de YouTube a esta instancia, mostrando la copia local cuando existe (o volviendo a youtube.com si no).",
   browserRedirectorOpenGuide: "Abrir la guía de configuración de Redirector",
+  showWatched: "Mostrar vistos",
+  hideWatched: "Ocultar vistos",
   search: "Buscar",
   recentDownloads: "Descargas Recientes",
   noDownloads: "Sin descargas aún",

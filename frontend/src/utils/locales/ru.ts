@@ -48,6 +48,8 @@ export const ru = {
   browserRedirector: "Перехват через Redirector",
   browserRedirectorDescription: "Перехватывает переходы по youtube.com: расширение-редиректор переписывает ссылки YouTube на этот экземпляр, открывая локальную копию, если она есть (и возвращая к youtube.com, если нет).",
   browserRedirectorOpenGuide: "Открыть руководство по настройке Redirector",
+  showWatched: "Показать просмотренные",
+  hideWatched: "Скрыть просмотренные",
   search: "Поиск",
   recentDownloads: "Недавние загрузки",
   noDownloads: "Загрузок пока нет",

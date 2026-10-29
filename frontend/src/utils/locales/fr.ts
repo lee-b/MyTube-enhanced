@@ -48,6 +48,8 @@ export const fr = {
   browserRedirector: "Prise en charge par Redirector",
   browserRedirectorDescription: "Prenez en charge la navigation sur youtube.com : une extension de redirection réécrit les liens YouTube vers cette instance, en servant la copie locale si elle existe (ou en retombant sur youtube.com).",
   browserRedirectorOpenGuide: "Ouvrir le guide de configuration de Redirector",
+  showWatched: "Afficher les vues",
+  hideWatched: "Masquer les vues",
   search: "Rechercher",
   recentDownloads: "Téléchargements récents",
   noDownloads: "Aucun téléchargement pour le moment",

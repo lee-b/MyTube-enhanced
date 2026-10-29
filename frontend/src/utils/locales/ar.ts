@@ -45,6 +45,8 @@ export const ar = {
   browserRedirector: "استحواذ المتصفح عبر Redirector",
   browserRedirectorDescription: "استحواذ على تنقل youtube.com: إعادة توجيه الروابط إلى هذه النسخة، حيث تُعرض النسخة المحلية إن وُجدت أو يعاد التوجيه إلى youtube.com.",
   browserRedirectorOpenGuide: "فتح دليل إعداد Redirector",
+  showWatched: "إظهار ما تم مشاهدته",
+  hideWatched: "إخفاء ما تم مشاهدته",
   search: "بحث",
   recentDownloads: "التحميلات الأخيرة",
   noDownloads: "لا توجد تحميلات بعد",

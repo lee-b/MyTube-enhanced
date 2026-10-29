@@ -44,6 +44,8 @@ export const zh = {
   browserRedirector: "浏览器重定向接管",
   browserRedirectorDescription: "接管 youtube.com 导航：URL 重定向扩展将 YouTube 链接改写到本实例，本地已收录时打开本地副本，否则回退到 youtube.com。",
   browserRedirectorOpenGuide: "打开 Redirector 配置指南",
+  showWatched: "显示已观看",
+  hideWatched: "隐藏已观看",
   search: "搜索",
   recentDownloads: "最近下载",
   noDownloads: "暂无下载",

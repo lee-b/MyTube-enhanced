@@ -24,6 +24,8 @@ export const en = {
   browserRedirector: "Browser Redirector Takeover",
   browserRedirectorDescription: "Take over youtube.com navigation: a URL-redirector extension rewrites YouTube links to this instance, serving the local copy when it exists (or falling back to youtube.com when it does not).",
   browserRedirectorOpenGuide: "Open the Redirector setup guide",
+  showWatched: "Show watched",
+  hideWatched: "Hide watched",
   search: "Search",
   recentDownloads: "Recent Downloads",
   noDownloads: "No downloads yet",

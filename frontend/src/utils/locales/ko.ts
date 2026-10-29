@@ -46,6 +46,8 @@ export const ko = {
   browserRedirector: "브라우저 리다이렉터 대체",
   browserRedirectorDescription: "youtube.com 탐색을 대체합니다: 리다이렉트 확장 프로그램이 YouTube 링크를 이 인스턴스로 다시 쓰고, 로컬 사본이 있으면 로컬에서 재생하고 없으면 youtube.com으로 되돌립니다.",
   browserRedirectorOpenGuide: "Redirector 설정 가이드 열기",
+  showWatched: "시청한 항목 표시",
+  hideWatched: "시청한 항목 숨기기",
   search: "검색",
   recentDownloads: "최근 다운로드",
   noDownloads: "아직 다운로드 없음",

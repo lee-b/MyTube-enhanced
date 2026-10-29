@@ -46,6 +46,8 @@ export const ja = {
   browserRedirector: "ブラウザリダイレクタ接管",
   browserRedirectorDescription: "youtube.com のナビゲーションを接管します：リダイレクト拡張機能が YouTube のリンクをこのインスタンスに書き換え、ローカルに保存済みならローカルで再生し、なければ youtube.com にフォールバックします。",
   browserRedirectorOpenGuide: "Redirector セットアップガイドを開く",
+  showWatched: "視聴済みを表示",
+  hideWatched: "視聴済みを隠す",
   search: "検索",
   recentDownloads: "最近のダウンロード",
   noDownloads: "ダウンロードはまだありません",
