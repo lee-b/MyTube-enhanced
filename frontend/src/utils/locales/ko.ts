@@ -76,6 +76,8 @@ export const ko = {
   fromYouTube: "YouTube에서",
   loadingYouTubeResults: "YouTube 결과 로드 중...",
   noYouTubeResults: "YouTube 결과 없음",
+    youtubeChannelUploads: "이 채널의 동영상",
+  youtubeChannelLoadFailed: "이 채널의 동영상을 불러오지 못했습니다. youtube.com의 채널 페이지가 대안입니다.",
   fromBilibili: "Bilibili에서",
   loadingBilibiliResults: "Bilibili 결과 로드 중...",
   noBilibiliResults: "Bilibili 결과 없음",

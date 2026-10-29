@@ -75,6 +75,8 @@ export const ar = {
   fromYouTube: "من YouTube",
   loadingYouTubeResults: "جاري تحميل نتائج YouTube...",
   noYouTubeResults: "لم يتم العثور على نتائج YouTube",
+    youtubeChannelUploads: "فيديوهات هذه القناة",
+  youtubeChannelLoadFailed: "تعذّر تحميل فيديوهات هذه القناة. صفحة القناة على youtube.com هي البديل.",
   fromBilibili: "من Bilibili",
   loadingBilibiliResults: "جاري تحميل نتائج Bilibili...",
   noBilibiliResults: "لم يتم العثور على نتائج Bilibili",

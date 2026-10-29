@@ -36,6 +36,14 @@ const apiRouteDefinitions: ApiRouteDefinition[] = [
     handlers: [asyncHandler(videoDownloadController.searchVideos)],
   },
   {
+    // Local listing of a YouTube channel's recent videos (no download);
+    // backs the /channel/youtube page the channel takeover target serves
+    // when the channel is not in the library.
+    method: "get",
+    path: "/youtube/channel/{*splat}",
+    handlers: [asyncHandler(videoDownloadController.channelVideos)],
+  },
+  {
     method: "post",
     path: "/download",
     allowApiKey: true,

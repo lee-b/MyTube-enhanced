@@ -242,6 +242,15 @@ export async function searchYouTube(
   return YtDlpDownloader.search(query, limit, offset);
 }
 
+// List a YouTube channel's recent videos without downloading (flat playlist).
+export async function searchYouTubeChannel(
+  channelPath: string,
+  limit?: number,
+  offset?: number,
+): Promise<any[]> {
+  return YtDlpDownloader.searchChannel(channelPath, limit, offset);
+}
+
 // Search for videos on Bilibili (using Bilibili's own web search API)
 export async function searchBilibili(
   query: string,

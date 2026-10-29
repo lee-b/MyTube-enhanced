@@ -19,7 +19,7 @@ it is available for [Chrome](https://chromewebstore.google.com/detail/redirector
 | Path | Resolves against | Redirects to (local match) | Redirects to (no match) |
 | --- | --- | --- | --- |
 | `GET /from/youtube/video/<id>` | the library's download-tracking rows (`source_video_id`) | `/video/<local-id>` (the local player), or a waiting page that queues an automatic download | via the on-demand download |
-| `GET /from/youtube/channel/<path>` | the `channel_url`/author of library videos | `/author/<author>` (the local author page) | `https://www.youtube.com/<path>` |
+| `GET /from/youtube/channel/<path>` | the `channel_url`/author of library videos | `/author/<author>` (the local author page) | `/channel/youtube/<path>` (the local channel page) |
 
 `<id>` is the 11-character YouTube video id, and `<path>` is the channel part
 of a YouTube URL (`channel/UC...`, legacy `c/<name>`, or `@<handle>`).
@@ -43,6 +43,11 @@ Notes:
   A channel therefore resolves locally once at least one of its videos is in
   the library. `@<handle>` paths are matched against author display names,
   which usually equal the handle.
+- When the channel is not in the library, the browser still stays on MyTube:
+  the channel target serves a local channel page (`/channel/youtube/<path>`)
+  that lists the channel's recent uploads via yt-dlp (no download) with View
+  and Download actions, so channels are browsable without leaving the
+  instance. The page links back to youtube.com when yt-dlp cannot list it.
 - These routes answer with plain 302 navigations and are not gated behind
   login; visibility scoping still applies to what they may reveal.
 - `GET /from/youtube/stream/<id>` streams raw media bytes when a progressive

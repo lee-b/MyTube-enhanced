@@ -51,6 +51,7 @@ const SubscriptionsPage = lazyWithRetry(
 );
 const VideoPlayer = lazyWithRetry(() => import('./pages/VideoPlayer'), 'video-player');
 const YouTubeTakeoverPage = lazyWithRetry(() => import('./pages/YouTubeTakeoverPage'), 'youtube-takeover-page');
+const YouTubeChannelPage = lazyWithRetry(() => import('./pages/YouTubeChannelPage'), 'youtube-channel-page');
 
 function AppContent() {
     const {
@@ -176,6 +177,9 @@ function AppContent() {
                                             <Route path="/author/:authorName" element={<AuthorVideos />} />
                                             <Route path="/video/:id" element={<VideoPlayer />} />
                                             <Route path="/watch/youtube/:sourceId" element={<YouTubeTakeoverPage />} />
+                                            {/* Local channel page served by the /from/youtube/channel
+                                                takeover target when the channel is not in the library. */}
+                                            <Route path="/channel/youtube/:encodedPath" element={<YouTubeChannelPage />} />
                                             <Route path="/subscriptions" element={<SubscriptionsPage />} />
                                             <Route path="/instruction" element={<InstructionPage />} />
                                         </Routes>
