@@ -1,4 +1,4 @@
-import { Add, Cast, Delete, Label, Lock, LockOpen, Share, Visibility, VisibilityOff } from '@mui/icons-material';
+import { Add, Cast, Delete, Label, Lock, LockOpen, Share, Visibility, VisibilityOff, CheckCircle, CheckCircleOutline } from '@mui/icons-material';
 import { Button, Menu, Stack, Tooltip, useMediaQuery } from '@mui/material';
 import React from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -17,6 +17,9 @@ interface VideoKebabMenuProps {
     isTogglingLock?: boolean;
     onToggleLock?: () => void;
     isLocked?: boolean;
+    onToggleWatched?: () => void;
+    isTogglingWatched?: boolean;
+    isWatched?: boolean;
     onAddTag?: () => void;
     video?: { visibility?: number };
 }
@@ -34,6 +37,9 @@ const VideoKebabMenu: React.FC<VideoKebabMenuProps> = ({
     isTogglingLock = false,
     onToggleLock,
     isLocked = false,
+    onToggleWatched,
+    isTogglingWatched = false,
+    isWatched = false,
     onAddTag,
     video,
 }) => {
@@ -70,6 +76,11 @@ const VideoKebabMenu: React.FC<VideoKebabMenuProps> = ({
     const handleToggleLock = () => {
         onClose();
         onToggleLock?.();
+    };
+
+    const handleToggleWatched = () => {
+        onClose();
+        onToggleWatched?.();
     };
 
     return (
@@ -166,6 +177,19 @@ const VideoKebabMenu: React.FC<VideoKebabMenuProps> = ({
                                     sx={{ minWidth: 'auto', p: 1, color: 'text.secondary', borderColor: 'text.secondary', '&:hover': { color: 'error.main', borderColor: 'error.main' } }}
                                 >
                                     <Delete />
+                                </Button>
+                            </Tooltip>
+                        )}
+                        {onToggleWatched && (
+                            <Tooltip title={isWatched ? t('markUnwatched') : t('markWatched')} disableHoverListener={isTouch}>
+                                <Button
+                                    variant="outlined"
+                                    color="inherit"
+                                    onClick={handleToggleWatched}
+                                    loading={isTogglingWatched}
+                                    sx={{ minWidth: 'auto', p: 1, color: 'text.secondary', borderColor: 'text.secondary', '&:hover': { color: 'primary.main', borderColor: 'primary.main' } }}
+                                >
+                                    {isWatched ? <CheckCircle /> : <CheckCircleOutline />}
                                 </Button>
                             </Tooltip>
                         )}

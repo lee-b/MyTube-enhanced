@@ -33,6 +33,9 @@ interface VideoInfoProps {
     onUnsubscribe?: () => void;
     onToggleVisibility?: () => void;
     onToggleLock?: () => void;
+    onToggleWatched?: () => void;
+    isTogglingWatched?: boolean;
+    isWatched?: boolean;
     onSeek?: (seconds: number) => void;
 }
 
@@ -58,6 +61,9 @@ const VideoInfo: React.FC<VideoInfoProps> = ({
     onUnsubscribe,
     onToggleVisibility,
     onToggleLock,
+    onToggleWatched,
+    isTogglingWatched = false,
+    isWatched = false,
     onSeek
 }) => {
     const { videoRef, videoResolution, needsDetection } = useVideoResolution(video);
@@ -142,6 +148,9 @@ const VideoInfo: React.FC<VideoInfoProps> = ({
                     onToggleVisibility={onToggleVisibility}
                     isTogglingLock={isTogglingLock}
                     onToggleLock={onToggleLock}
+                    onToggleWatched={onToggleWatched}
+                    isTogglingWatched={isTogglingWatched}
+                    isWatched={isWatched}
                 />
             </Stack>
 

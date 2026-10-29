@@ -1,4 +1,4 @@
-import { Add, Cast, Delete, Lock, LockOpen, Share, Visibility, VisibilityOff } from '@mui/icons-material';
+import { Add, Cast, Delete, Lock, LockOpen, Share, Visibility, VisibilityOff, CheckCircle, CheckCircleOutline } from '@mui/icons-material';
 import { Button, Menu, MenuItem, Stack, Tooltip, useMediaQuery, useTheme } from '@mui/material';
 import React, { useState } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
@@ -21,6 +21,9 @@ interface VideoActionButtonsProps {
     onToggleVisibility?: () => void;
     isTogglingLock?: boolean;
     onToggleLock?: () => void;
+    onToggleWatched?: () => void;
+    isTogglingWatched?: boolean;
+    isWatched?: boolean;
 }
 
 const VideoActionButtons: React.FC<VideoActionButtonsProps> = ({
@@ -31,7 +34,10 @@ const VideoActionButtons: React.FC<VideoActionButtonsProps> = ({
     isTogglingVisibility = false,
     onToggleVisibility,
     isTogglingLock = false,
-    onToggleLock
+    onToggleLock,
+    onToggleWatched,
+    isTogglingWatched = false,
+    isWatched = false
 }) => {
     const { t } = useLanguage();
     const { handleShare } = useShareVideo(video);
@@ -287,6 +293,19 @@ const VideoActionButtons: React.FC<VideoActionButtonsProps> = ({
                             </Button>
                         </Tooltip>
                     )}
+                    {onToggleWatched && (
+                        <Tooltip title={isWatched ? t('markUnwatched') : t('markWatched')} disableHoverListener={isTouch}>
+                            <Button
+                                variant="outlined"
+                                color="inherit"
+                                onClick={onToggleWatched}
+                                loading={isTogglingWatched}
+                                sx={{ minWidth: 'auto', p: 1, color: 'text.secondary', borderColor: 'text.secondary', '&:hover': { color: 'primary.main', borderColor: 'primary.main' } }}
+                            >
+                                {isWatched ? <CheckCircle /> : <CheckCircleOutline />}
+                            </Button>
+                        </Tooltip>
+                    )}
                     <Tooltip title={t('addToCollection')} disableHoverListener={isTouch}>
                         <Button
                             variant="outlined"
@@ -327,6 +346,9 @@ const VideoActionButtons: React.FC<VideoActionButtonsProps> = ({
                     isTogglingLock={isTogglingLock}
                     onToggleLock={onToggleLock}
                     isLocked={isLocked}
+                    onToggleWatched={onToggleWatched}
+                    isTogglingWatched={isTogglingWatched}
+                    isWatched={isWatched}
                     video={video}
                 />
                 <Menu

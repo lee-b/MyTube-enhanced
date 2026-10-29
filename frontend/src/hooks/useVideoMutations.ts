@@ -150,6 +150,38 @@ export function useVideoMutations({
     },
   });
 
+  // Watched/unwatched toggle. Canonical payload is boolean, matching the
+  // PUT /videos/:id whitelist; the backend maps it to viewCount/lastPlayedAt.
+  const watchedMutation = useMutation({
+    mutationFn: async (watched: boolean) => {
+      const response = await api.put(`/videos/${videoId}`, { watched });
+      return response.data;
+    },
+    onSuccess: (data, watched) => {
+      if (data.success) {
+        const patch = watched
+          ? (old: Video | undefined) =>
+              old
+                ? {
+                    ...old,
+                    viewCount: Math.max(old.viewCount ?? 0, 1),
+                    lastPlayedAt: Date.now(),
+                  }
+                : old
+          : (old: Video | undefined) =>
+              old ? { ...old, viewCount: 0, lastPlayedAt: null } : old;
+        queryClient.setQueryData(["video", videoId], patch);
+        queryClient.setQueryData(["videos"], (old: Video[] | undefined) =>
+          old ? old.map((v) => (v.id === videoId ? patch(v) : v)) : []
+        );
+        showSnackbar(watched ? t("videoMarkedWatched") : t("videoMarkedUnwatched"), "success");
+      }
+    },
+    onError: () => {
+      showSnackbar(t("error"), "error");
+    },
+  });
+
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (videoIdToDelete: string) => {
@@ -257,6 +289,7 @@ export function useVideoMutations({
     tagsMutation,
     visibilityMutation,
     lockMutation,
+    watchedMutation,
     deleteMutation,
     uploadSubtitleMutation,
     deleteSubtitleMutation,

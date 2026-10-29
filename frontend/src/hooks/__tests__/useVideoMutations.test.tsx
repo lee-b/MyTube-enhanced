@@ -6,8 +6,12 @@ import type { Video } from '../../types';
 import { useVideoMutations } from '../useVideoMutations';
 
 const mockPost = vi.fn();
+const mockPut = vi.fn();
 vi.mock('../../utils/apiClient', () => ({
-    api: { post: (...args: unknown[]) => mockPost(...args) },
+    api: {
+        post: (...args: unknown[]) => mockPost(...args),
+        put: (...args: unknown[]) => mockPut(...args),
+    },
 }));
 vi.mock('../../contexts/LanguageContext', () => ({
     useLanguage: () => ({ t: (key: string) => key }),
@@ -23,6 +27,7 @@ describe('useVideoMutations', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockPost.mockResolvedValue({ data: { success: true } });
+        mockPut.mockResolvedValue({ data: { success: true } });
     });
 
     it('syncs the shared videos list cache when a rating changes', async () => {
@@ -54,5 +59,63 @@ describe('useVideoMutations', () => {
         const list = queryClient.getQueryData<Video[]>(['videos']);
         expect(list?.find((video) => video.id === 'v2')?.rating).toBe(5);
         expect(queryClient.getQueryData<Video>(['video', 'v1'])?.rating).toBe(5);
+    });
+
+    it('marks a video watched and updates both caches with viewCount/lastPlayedAt', async () => {
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false } },
+        });
+        queryClient.setQueryData(['video', 'v1'], { id: 'v1', viewCount: 0 } as Video);
+        queryClient.setQueryData(['videos'], [
+            { id: 'v1', viewCount: 0 },
+            { id: 'v2', viewCount: 4 },
+        ] as Video[]);
+
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+            <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        );
+        const { result } = renderHook(() => useVideoMutations({ videoId: 'v1' }), { wrapper });
+
+        await act(async () => {
+            await result.current.watchedMutation.mutateAsync(true);
+        });
+
+        await waitFor(() => {
+            const list = queryClient.getQueryData<Video[]>(['videos']);
+            expect(list?.find((video) => video.id === 'v1')?.viewCount).toBe(1);
+        });
+        const single = queryClient.getQueryData<Video>(['video', 'v1']);
+        expect(single?.viewCount).toBe(1);
+        expect(single?.lastPlayedAt).toBeGreaterThan(0);
+        // Unrelated entries untouched.
+        const list = queryClient.getQueryData<Video[]>(['videos']);
+        expect(list?.find((video) => video.id === 'v2')?.viewCount).toBe(4);
+        expect(mockPut).toHaveBeenCalledWith('/videos/v1', { watched: true });
+    });
+
+    it('marks a video unwatched by resetting viewCount and lastPlayedAt', async () => {
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false } },
+        });
+        queryClient.setQueryData(['video', 'v1'], { id: 'v1', viewCount: 3, lastPlayedAt: 111 } as Video);
+        queryClient.setQueryData(['videos'], [
+            { id: 'v1', viewCount: 3, lastPlayedAt: 111 },
+        ] as Video[]);
+
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+            <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        );
+        const { result } = renderHook(() => useVideoMutations({ videoId: 'v1' }), { wrapper });
+
+        await act(async () => {
+            await result.current.watchedMutation.mutateAsync(false);
+        });
+
+        await waitFor(() => {
+            const list = queryClient.getQueryData<Video[]>(['videos']);
+            expect(list?.[0]?.viewCount).toBe(0);
+        });
+        const single = queryClient.getQueryData<Video>(['video', 'v1']);
+        expect(single?.lastPlayedAt).toBeNull();
     });
 });

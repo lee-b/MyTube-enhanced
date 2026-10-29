@@ -84,6 +84,7 @@ vi.mock('../../hooks/useVideoMutations', () => ({
         tagsMutation: {},
         visibilityMutation: {},
         lockMutation: { isPending: false },
+        watchedMutation: { isPending: false },
         deleteMutation: { isPending: false }
     })
 }));

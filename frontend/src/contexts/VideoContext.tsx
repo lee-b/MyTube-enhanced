@@ -725,15 +725,26 @@ export const VideoProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         },
         onSuccess: ({ id, updates, data }) => {
             if (data.success) {
+                // The watched toggle is a request-only field: the backend maps
+                // it to viewCount/lastPlayedAt, so the cache needs the same
+                // derivation instead of merging the raw flag.
+                const isWatchedUpdate =
+                    Object.prototype.hasOwnProperty.call(updates, 'watched');
+                const watchedPatch = (video: Video) => {
+                    if (!isWatchedUpdate) return { ...video, ...updates };
+                    const watched = updates.watched;
+                    const base = { ...video, ...updates };
+                    return watched
+                        ? { ...base, viewCount: Math.max(video.viewCount ?? 0, 1), lastPlayedAt: Date.now() }
+                        : { ...base, viewCount: 0, lastPlayedAt: null };
+                };
                 // Update the videos list query
                 queryClient.setQueryData(['videos'], (old: Video[] | undefined) =>
-                    old ? old.map(video =>
-                        video.id === id ? { ...video, ...updates } : video
-                    ) : []
+                    old ? old.map(video => video.id === id ? watchedPatch(video) : video) : []
                 );
                 // Also update the individual video query if it exists
                 queryClient.setQueryData(['video', id], (old: Video | undefined) =>
-                    old ? { ...old, ...updates } : old
+                    old ? watchedPatch(old) : old
                 );
                 const isAutoDeleteLockUpdate = Object.prototype.hasOwnProperty.call(
                     updates,
@@ -744,7 +755,9 @@ export const VideoProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                         ? updates.autoDeleteLocked === 1
                             ? t('videoLocked')
                             : t('videoUnlocked')
-                        : t('videoUpdated')
+                        : isWatchedUpdate
+                            ? updates.watched ? t('videoMarkedWatched') : t('videoMarkedUnwatched')
+                            : t('videoUpdated')
                 );
             }
         },
