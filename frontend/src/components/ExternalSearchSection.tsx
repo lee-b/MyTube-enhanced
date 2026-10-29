@@ -1,4 +1,4 @@
-import { Download, OndemandVideo, YouTube } from '@mui/icons-material';
+import { Download, OndemandVideo, PlayArrow, YouTube } from '@mui/icons-material';
 import {
     Box,
     Button,
@@ -63,6 +63,7 @@ const ExternalSearchSection: React.FC<ExternalSearchSectionProps> = ({
     const { t } = useLanguage();
     const sourceColor = source === 'bilibili' ? platform.bilibili : platform.youtube;
     const hasResults = results && results.length > 0;
+    const isYoutube = source === 'youtube';
 
     return (
         <Box>
@@ -122,11 +123,35 @@ const ExternalSearchSection: React.FC<ExternalSearchSectionProps> = ({
                                     </Box>
                                     <CardContent sx={{ flexGrow: 1, p: 2 }}>
                                         <Typography gutterBottom variant="subtitle1" component="div" sx={{ fontWeight: 600, lineHeight: 1.2, mb: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                            {result.title}
+                                            {/* YouTube results route through the takeover target so a
+                                                locally-downloaded video opens in the local player;
+                                                non-local ones stream through the instance (or fall
+                                                back to youtube.com when no stream is servable). */}
+                                            {isYoutube ? (
+                                                <a
+                                                    href={`/from/youtube/video/${result.id}`}
+                                                    style={{ color: 'inherit', textDecoration: 'none' }}
+                                                >
+                                                    {result.title}
+                                                </a>
+                                            ) : (
+                                                result.title
+                                            )}
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                            {result.author}
-                                        </Typography>
+                                        {isYoutube && result.channelId ? (
+                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                                <a
+                                                    href={`/from/youtube/channel/${result.channelId}`}
+                                                    style={{ color: 'inherit' }}
+                                                >
+                                                    {result.author}
+                                                </a>
+                                            </Typography>
+                                        ) : (
+                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                                {result.author}
+                                            </Typography>
+                                        )}
                                         {result.viewCount && (
                                             <Typography variant="caption" color="text.secondary">
                                                 {formatViewCount(result.viewCount)} {t('views')}
@@ -134,6 +159,21 @@ const ExternalSearchSection: React.FC<ExternalSearchSectionProps> = ({
                                         )}
                                     </CardContent>
                                     <CardActions sx={{ p: 2, pt: 0 }}>
+                                        {/* Only YouTube results have a takeover target; Bilibili keeps
+                                            download as the sole action. The backend serves the local
+                                            player when the video is in the library and streams it
+                                            through the instance when it is not, so View is always
+                                            clickable for YouTube results. */}
+                                        {isYoutube && (
+                                            <Button
+                                                variant="outlined"
+                                                startIcon={<PlayArrow />}
+                                                component="a"
+                                                href={`/from/youtube/video/${result.id}`}
+                                            >
+                                                {t('view')}
+                                            </Button>
+                                        )}
                                         <Button
                                             fullWidth
                                             variant="contained"

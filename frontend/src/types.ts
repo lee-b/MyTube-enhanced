@@ -44,11 +44,19 @@ export interface VideoSearchResult {
   id: string;
   title: string;
   author?: string;
+  /** YouTube channel id, when the search backend returned one. Lets result
+   * cards link the author to the /from/youtube/channel/... takeover target. */
+  channelId?: string;
   thumbnailUrl?: string;
   duration?: number | string;
   viewCount?: number;
   sourceUrl: string;
   source: "youtube" | "bilibili";
+  /** Whether the library already holds this video. The backend annotates
+   * search results from the download-tracking rows; payloads that predate the
+   * flag leave it unset and stay clickable (the takeover target falls back
+   * to the original URL when the content is not local). */
+  local?: boolean;
 }
 
 export interface Collection {

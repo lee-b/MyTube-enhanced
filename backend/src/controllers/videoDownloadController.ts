@@ -89,8 +89,25 @@ export const searchVideos = async (
     source === "bilibili"
       ? await downloadService.searchBilibili(query, limit, offset)
       : await downloadService.searchYouTube(query, limit, offset);
+
+  // Annotate each result with whether the library already has it, so the
+  // external search UI can route clicks through the redirector takeover
+  // targets and tell the user which cards are not local yet. The tracking
+  // lookup is synchronous and cheap (an indexed select per result), and the
+  // redirect controller applies the same visibility scoping these rows give.
+  const resultsWithLocal = (results as Array<Record<string, any>>).map(
+    (result) => {
+      const check = storageService.checkVideoDownloadBySourceId(
+        result.id,
+        source,
+        "video"
+      ) as { status?: string } | undefined;
+      return { ...result, local: check?.status === "exists" };
+    }
+  );
+
   // Return { results } format for backward compatibility (frontend expects response.data.results)
-  sendData(res, { results });
+  sendData(res, { results: resultsWithLocal });
 };
 
 /**

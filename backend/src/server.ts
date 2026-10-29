@@ -19,6 +19,7 @@ import { logger } from "./utils/logger";
 import { VERSION } from "./version";
 import { csrfProtection, csrfTokenProvider } from "./middleware/csrfMiddleware";
 import { registerApiRoutes, registerFeedRoute } from "./server/apiRoutes";
+import { registerRedirectRoutes } from "./server/redirectRoutes";
 import { buildCorsOptionsDelegate } from "./server/cors";
 import { registerCloudRoutes } from "./server/cloudRoutes";
 import { configureRateLimiting } from "./server/rateLimit";
@@ -87,6 +88,7 @@ const startServer = async (): Promise<void> => {
     registerStaticRoutes(app, frontendDist);
     registerCloudRoutes(app);
     registerApiRoutes(app, authLimiters, { includeFeedRoute: false });
+    registerRedirectRoutes(app);
     registerSpaFallback(app, frontendDist);
 
     // Global error middleware (must be registered after routes)

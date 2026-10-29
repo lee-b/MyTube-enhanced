@@ -262,7 +262,45 @@ describe("videoDownloadController extra coverage", () => {
 
     expect(downloadService.searchYouTube).toHaveBeenCalledWith("music", 12, 3);
     expect(status).toHaveBeenCalledWith(200);
-    expect(json).toHaveBeenCalledWith({ results: [{ id: "v1" }] });
+    // Every result reports whether the library already has it; an unset
+    // tracking mock means not local.
+    expect(json).toHaveBeenCalledWith({ results: [{ id: "v1", local: false }] });
+  });
+
+  it("searchVideos marks results whose download tracking row says they exist", async () => {
+    req.query = { query: "music" } as any;
+    vi.mocked(downloadService.searchYouTube).mockResolvedValue([
+      { id: "v1" },
+      { id: "v2" },
+    ] as any);
+    vi.mocked(storageService.checkVideoDownloadBySourceId)
+      .mockReturnValueOnce({ found: true, status: "exists" } as any)
+      .mockReturnValueOnce({ found: true, status: "deleted" } as any);
+
+    await searchVideos(req as Request, res as Response);
+
+    // "exists" is local; "deleted" is not (the file is gone, so the takeover
+    // target would bounce the user back to youtube.com).
+    expect(json).toHaveBeenCalledWith({
+      results: [
+        { id: "v1", local: true },
+        { id: "v2", local: false },
+      ],
+    });
+  });
+
+  it("searchVideos checks local availability against the queried source", async () => {
+    req.query = { query: "music", source: "bilibili" } as any;
+    vi.mocked(downloadService.searchBilibili).mockResolvedValue([{ id: "BV1" }] as any);
+
+    await searchVideos(req as Request, res as Response);
+
+    expect(storageService.checkVideoDownloadBySourceId).toHaveBeenCalledWith(
+      "BV1",
+      "bilibili",
+      "video"
+    );
+    expect(json).toHaveBeenCalledWith({ results: [{ id: "BV1", local: false }] });
   });
 
   it("searchVideos routes an explicit bilibili source to the Bilibili search", async () => {
@@ -273,7 +311,7 @@ describe("videoDownloadController extra coverage", () => {
 
     expect(downloadService.searchBilibili).toHaveBeenCalledWith("music", 12, 3);
     expect(downloadService.searchYouTube).not.toHaveBeenCalled();
-    expect(json).toHaveBeenCalledWith({ results: [{ id: "BV1" }] });
+    expect(json).toHaveBeenCalledWith({ results: [{ id: "BV1", local: false }] });
   });
 
   it("searchVideos rejects a source it does not serve", async () => {

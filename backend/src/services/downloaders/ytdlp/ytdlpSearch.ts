@@ -54,6 +54,9 @@ export async function searchVideos(
     id: entry.id,
     title: entry.title,
     author: entry.uploader,
+    // Flat search entries carry the channel id when YouTube returns it; the
+    // frontend links the author to the redirector channel target with it.
+    channelId: entry.channel_id || undefined,
     thumbnailUrl:
       entry.thumbnail ||
       (entry.thumbnails && entry.thumbnails.length > 0

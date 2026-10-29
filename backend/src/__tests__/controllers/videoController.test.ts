@@ -170,7 +170,9 @@ describe("VideoController", () => {
 
       expect(downloadService.searchYouTube).toHaveBeenCalledWith("test", 8, 1);
       expect(status).toHaveBeenCalledWith(200);
-      expect(json).toHaveBeenCalledWith({ results: mockResults });
+      expect(json).toHaveBeenCalledWith({
+        results: mockResults.map((result) => ({ ...result, local: false })),
+      });
     });
 
     it("should return 400 if query is missing", async () => {

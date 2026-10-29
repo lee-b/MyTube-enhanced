@@ -50,6 +50,7 @@ const SubscriptionsPage = lazyWithRetry(
     'subscriptions-page',
 );
 const VideoPlayer = lazyWithRetry(() => import('./pages/VideoPlayer'), 'video-player');
+const YouTubeTakeoverPage = lazyWithRetry(() => import('./pages/YouTubeTakeoverPage'), 'youtube-takeover-page');
 
 function AppContent() {
     const {
@@ -174,6 +175,7 @@ function AppContent() {
                                             <Route path="/tags" element={<AllTagsPage />} />
                                             <Route path="/author/:authorName" element={<AuthorVideos />} />
                                             <Route path="/video/:id" element={<VideoPlayer />} />
+                                            <Route path="/watch/youtube/:sourceId" element={<YouTubeTakeoverPage />} />
                                             <Route path="/subscriptions" element={<SubscriptionsPage />} />
                                             <Route path="/instruction" element={<InstructionPage />} />
                                         </Routes>
