@@ -7,6 +7,7 @@ import {
   formatDuration,
   formatRelativeDownloadTime,
   formatSize,
+  formatVideoUploadTime,
   getLanguageFromSubtitlePath,
   getSubtitleLanguageLabel,
   getSubtitleTrackLanguage,
@@ -405,6 +406,35 @@ describe("formatUtils", () => {
       expect(getSubtitleLanguageLabel("und", "/subtitles/video.und.vtt")).toBe(
         "Unknown"
       );
+    });
+  });
+
+  describe("formatVideoUploadTime", () => {
+    it("returns Today for an upload dated today", () => {
+      const today = getLocalDate(new Date()).replace(/-/g, "");
+      expect(formatVideoUploadTime(today)).toBe("Today");
+    });
+
+    it("returns This week for an upload within 7 days", () => {
+      const d = new Date();
+      d.setDate(d.getDate() - 3);
+      expect(formatVideoUploadTime(getLocalDate(d).replace(/-/g, ""))).toBe("This week");
+    });
+
+    it("returns weeks-ago copy within a month", () => {
+      const d = new Date();
+      d.setDate(d.getDate() - 14);
+      expect(formatVideoUploadTime(getLocalDate(d).replace(/-/g, ""))).toBe("2w ago");
+    });
+
+    it("falls back to the absolute date for older uploads", () => {
+      expect(formatVideoUploadTime("20190524")).toBe("2019-05-24");
+    });
+
+    it("returns Unknown date for missing or malformed input", () => {
+      expect(formatVideoUploadTime(undefined)).toBe("Unknown date");
+      expect(formatVideoUploadTime("2019-05-24")).toBe("Unknown date");
+      expect(formatVideoUploadTime("99")).toBe("Unknown date");
     });
   });
 });

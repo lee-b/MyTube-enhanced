@@ -6,7 +6,7 @@ import { useCloudStorageUrl } from '../../hooks/useCloudStorageUrl';
 import { useSettings } from '../../hooks/useSettings';
 import { Video } from '../../types';
 import { authorAvatarFallbackSx } from '../../utils/authorAvatarStyles';
-import { formatRelativeDownloadTime } from '../../utils/formatUtils';
+import { formatVideoUploadTime } from '../../utils/formatUtils';
 import { VideoCardCollectionInfo } from '../../utils/videoCardUtils';
 
 const DATE_COLLAPSE_MS = 300; // duration of the date show/hide transition
@@ -228,7 +228,7 @@ export const VideoCardContent: React.FC<VideoCardContentProps> = ({
                         }}
                     >
                         <Typography variant="caption" color="text.secondary" sx={{ flex: '0 0 auto' }}>
-                            {formatRelativeDownloadTime(video.addedAt, video.date, t)}
+                            {formatVideoUploadTime(video.date, t)}
                         </Typography>
                     </Box>
                     {settings?.showViewCounts === true ? (

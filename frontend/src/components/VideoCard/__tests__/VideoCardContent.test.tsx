@@ -16,6 +16,7 @@ vi.mock('../../../hooks/useSettings', () => ({
 vi.mock('../../../utils/formatUtils', () => ({
     formatDate: () => '2023-01-01',
     formatRelativeDownloadTime: () => '2023-01-01',
+    formatVideoUploadTime: () => '2023-01-01',
 }));
 
 
