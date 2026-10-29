@@ -1,5 +1,6 @@
 import express, { Express } from "express";
 import { redirectToChannel, redirectToVideo } from "../controllers/redirectController";
+import { getRedirectorHelp } from "../controllers/redirectHelpController";
 
 /**
  * Browser-redirector takeover routes (see documents/en/redirector.md).
@@ -14,6 +15,7 @@ export function registerRedirectRoutes(app: Express): void {
 
   router.get("/from/youtube/video/:id", redirectToVideo);
   router.get("/from/youtube/channel/{*splat}", redirectToChannel);
+  router.get("/from/help", getRedirectorHelp);
 
   app.use(router);
 }
