@@ -18,11 +18,13 @@ vi.mock("../../services/downloadManager", () => ({
 const storageMocks = vi.hoisted(() => ({
   checkVideoDownloadBySourceId: vi.fn(),
   getVideoById: vi.fn(),
+  getActiveDownload: vi.fn(),
 }));
 
 vi.mock("../../services/storageService", () => ({
   checkVideoDownloadBySourceId: storageMocks.checkVideoDownloadBySourceId,
   getVideoById: storageMocks.getVideoById,
+  getActiveDownload: storageMocks.getActiveDownload,
 }));
 
 import {
@@ -56,6 +58,7 @@ describe("onDemandYouTube", () => {
       ...notFoundCheck,
     });
     storageMocks.getVideoById.mockReset().mockReturnValue(undefined);
+    storageMocks.getActiveDownload.mockReset().mockReturnValue(undefined);
     // Let any download queued by an earlier test settle so the service's
     // module-level in-flight marker does not leak between tests.
     await flushMicrotasks();
@@ -156,6 +159,28 @@ describe("onDemandYouTube", () => {
 
       releaseDownload?.();
       await flushMicrotasks();
+    });
+
+    it("surfaces live download progress for the queued on-demand download", () => {
+      downloadMocks.addDownload.mockReturnValue(new Promise(() => {}));
+
+      queueOnDemandDownload("6SxEj1cujQE");
+
+      storageMocks.getActiveDownload.mockImplementation((id: string) =>
+        id.startsWith("ondemand-6SxEj1cujQE-")
+          ? {
+              progress: 42,
+              speed: "12 MiB/s",
+              title: "Never Gonna Give You Up",
+            }
+          : undefined
+      );
+
+      const status = getYouTubeLocalStatus("6SxEj1cujQE", undefined);
+      expect(status.progress).toBe(42);
+      expect(status.speed).toBe("12 MiB/s");
+      expect(status.title).toBe("Never Gonna Give You Up");
+      expect(status.local).toBe(false);
     });
   });
 });

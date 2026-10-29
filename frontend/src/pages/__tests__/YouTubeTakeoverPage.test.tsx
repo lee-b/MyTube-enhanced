@@ -78,6 +78,25 @@ describe('YouTubeTakeoverPage', () => {
     expect(routerMocks.navigate).not.toHaveBeenCalled();
   });
 
+  it('shows a determinate progress bar with the reported percent', async () => {
+    fetchMock().mockImplementation(async () => ({
+      ok: true,
+      json: async () => ({ local: false, queued: true, progress: 42, speed: '12 MiB/s' }),
+    }));
+
+    render(<YouTubeTakeoverPage />);
+
+    await act(async () => {});
+    await vi.advanceTimersByTimeAsync(3000);
+    await act(async () => {});
+
+    const bar = screen.getByRole('progressbar');
+    expect(bar).toHaveAttribute('aria-valuenow', '42');
+    expect(screen.getByText(/42%/)).toBeInTheDocument();
+    expect(screen.getByText(/12 MiB\/s/)).toBeInTheDocument();
+    expect(routerMocks.navigate).not.toHaveBeenCalled();
+  });
+
   it('offers YouTube as the non-destructive fallback after the wait times out', async () => {
     let pollCount = 0;
     fetchMock().mockImplementation(async () => {

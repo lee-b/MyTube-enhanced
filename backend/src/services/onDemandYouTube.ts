@@ -26,6 +26,10 @@ type VisibilityRole = import("../services/storageService").VideoCallerRole | und
 // duplicate downloads. Cleared on failure so the next click can retry.
 const inFlightSourceIds = new Set<string>();
 
+// Download-manager ids of the queued on-demand downloads, keyed by YouTube
+// video id, so the status endpoint can report live progress.
+const activeDownloadIds = new Map<string, string>();
+
 const youtubeWatchUrl = (sourceVideoId: string): string =>
   `https://www.youtube.com/watch?v=${sourceVideoId}`;
 
@@ -36,6 +40,12 @@ export interface YouTubeLocalStatus {
   videoId?: string;
   /** A download for this video is queued or running right now. */
   queued: boolean;
+  /** Download progress in percent (0-100), while a download runs. */
+  progress?: number | null;
+  /** Human-readable download speed, while a download runs. */
+  speed?: string | null;
+  /** The download queue title (resolves to the video title once known). */
+  title?: string | null;
 }
 
 /**
@@ -56,10 +66,18 @@ export function getYouTubeLocalStatus(
     !!downloadCheck.videoId &&
     !!storageService.getVideoById(downloadCheck.videoId, role);
 
+  const downloadId = activeDownloadIds.get(sourceVideoId);
+  const download = downloadId
+    ? storageService.getActiveDownload(downloadId)
+    : undefined;
+
   return {
     local: locallyAvailable,
     videoId: locallyAvailable ? downloadCheck.videoId : undefined,
     queued: inFlightSourceIds.has(sourceVideoId),
+    progress: download?.progress,
+    speed: download?.speed,
+    title: download?.title,
   };
 }
 
@@ -89,6 +107,7 @@ export function queueOnDemandDownload(sourceVideoId: string): void {
   inFlightSourceIds.add(sourceVideoId);
 
   const downloadId = `ondemand-${sourceVideoId}-${Date.now()}`;
+  activeDownloadIds.set(sourceVideoId, downloadId);
   logger.info(
     `On-demand YouTube: queueing download for id ${sourceVideoId} (${downloadId})`
   );
@@ -122,9 +141,11 @@ export function queueOnDemandDownload(sourceVideoId: string): void {
       })
       .finally(() => {
         inFlightSourceIds.delete(sourceVideoId);
+        activeDownloadIds.delete(sourceVideoId);
       });
   } catch (error) {
     inFlightSourceIds.delete(sourceVideoId);
+    activeDownloadIds.delete(sourceVideoId);
     logger.error(
       `On-demand YouTube: could not queue download for id ${sourceVideoId}:`,
       error instanceof Error ? error : new Error(String(error))
