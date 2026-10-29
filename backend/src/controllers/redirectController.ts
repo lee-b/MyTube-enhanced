@@ -20,7 +20,7 @@ import { logger } from "../utils/logger";
  * or with YouTube's URL grammar.
  */
 
-const YOUTUBE_VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
+export const YOUTUBE_VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
 
 // A channel path is the part after youtube.com/, restricted to the shapes
 // YouTube itself uses: /channel/UC..., legacy /c/<name>, and /@<handle>.
@@ -47,10 +47,19 @@ export const redirectToVideo = async (
   res: Response
 ): Promise<void> => {
   const sourceVideoId = getStringParam(req.params.id) ?? "";
-  const fallbackUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(sourceVideoId)}`;
+  // A non-local video streams through the instance (same yt-dlp stack as
+  // regular downloads) instead of demanding a manual download first; the
+  // stream endpoint itself falls back to youtube.com when nothing playable
+  // can be served.
+  const fallbackUrl = `/from/youtube/stream/${encodeURIComponent(sourceVideoId)}`;
 
   if (!YOUTUBE_VIDEO_ID_PATTERN.test(sourceVideoId)) {
-    redirect(res, fallbackUrl);
+    // Not a video id at all: straight back to YouTube, the stream endpoint
+    // would only repeat the check.
+    redirect(
+      res,
+      `https://www.youtube.com/watch?v=${encodeURIComponent(sourceVideoId)}`
+    );
     return;
   }
 

@@ -39,7 +39,6 @@ export const ko = {
   pasteUrl: "동영상 또는 컬렉션 URL 붙여넣기",
   download: "다운로드",
   view: "보기",
-  viewNotLocalHint: "아직 라이브러리에 없습니다",
   browserRedirector: "브라우저 리다이렉터 대체",
   browserRedirectorDescription: "youtube.com 탐색을 대체합니다: 리다이렉트 확장 프로그램이 YouTube 링크를 이 인스턴스로 다시 쓰고, 로컬 사본이 있으면 로컬에서 재생하고 없으면 youtube.com으로 되돌립니다.",
   browserRedirectorOpenGuide: "Redirector 설정 가이드 열기",

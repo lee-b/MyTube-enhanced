@@ -75,9 +75,9 @@ describe("redirectToVideo", () => {
     );
 
     expect(response.status).toBe(302);
-    expect(response.headers.location).toBe(
-      "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-    );
+    // Non-local videos stream through the instance instead of demanding a
+    // manual download; the stream endpoint owns the youtube.com fallback.
+    expect(response.headers.location).toBe("/from/youtube/stream/dQw4w9WgXcQ");
     expect(storageMocks.getVideoById).not.toHaveBeenCalled();
   });
 
@@ -93,9 +93,7 @@ describe("redirectToVideo", () => {
     );
 
     expect(response.status).toBe(302);
-    expect(response.headers.location).toBe(
-      "https://www.youtube.com/watch?v=6SxEj1cujQE"
-    );
+    expect(response.headers.location).toBe("/from/youtube/stream/6SxEj1cujQE");
     expect(storageMocks.getVideoById).not.toHaveBeenCalled();
   });
 
@@ -112,9 +110,7 @@ describe("redirectToVideo", () => {
     );
 
     expect(response.status).toBe(302);
-    expect(response.headers.location).toBe(
-      "https://www.youtube.com/watch?v=6SxEj1cujQE"
-    );
+    expect(response.headers.location).toBe("/from/youtube/stream/6SxEj1cujQE");
   });
 
   it("falls back without consulting the library for non-video-id paths", async () => {

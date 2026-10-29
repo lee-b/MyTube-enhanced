@@ -41,7 +41,6 @@ export const ru = {
   pasteUrl: "Вставьте URL видео или коллекции",
   download: "Скачать",
   view: "Смотреть",
-  viewNotLocalHint: "Пока нет в библиотеке",
   browserRedirector: "Перехват через Redirector",
   browserRedirectorDescription: "Перехватывает переходы по youtube.com: расширение-редиректор переписывает ссылки YouTube на этот экземпляр, открывая локальную копию, если она есть (и возвращая к youtube.com, если нет).",
   browserRedirectorOpenGuide: "Открыть руководство по настройке Redirector",

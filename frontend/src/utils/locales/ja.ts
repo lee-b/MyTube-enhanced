@@ -39,7 +39,6 @@ export const ja = {
   pasteUrl: "動画またはコレクションのURLを貼り付け",
   download: "ダウンロード",
   view: "視聴",
-  viewNotLocalHint: "まだライブラリにありません",
   browserRedirector: "ブラウザリダイレクタ接管",
   browserRedirectorDescription: "youtube.com のナビゲーションを接管します：リダイレクト拡張機能が YouTube のリンクをこのインスタンスに書き換え、ローカルに保存済みならローカルで再生し、なければ youtube.com にフォールバックします。",
   browserRedirectorOpenGuide: "Redirector セットアップガイドを開く",

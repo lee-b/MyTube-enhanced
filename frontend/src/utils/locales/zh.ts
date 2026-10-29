@@ -37,7 +37,6 @@ export const zh = {
   pasteUrl: "粘贴视频或合集链接",
   download: "下载",
   view: "观看",
-  viewNotLocalHint: "尚未收录",
   browserRedirector: "浏览器重定向接管",
   browserRedirectorDescription: "接管 youtube.com 导航：URL 重定向扩展将 YouTube 链接改写到本实例，本地已收录时打开本地副本，否则回退到 youtube.com。",
   browserRedirectorOpenGuide: "打开 Redirector 配置指南",

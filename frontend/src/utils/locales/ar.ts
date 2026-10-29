@@ -38,7 +38,6 @@ export const ar = {
   pasteUrl: "لصق رابط الفيديو أو المجموعة",
   download: "تحميل",
   view: "مشاهدة",
-  viewNotLocalHint: "ليست في المكتبة بعد",
   browserRedirector: "استحواذ المتصفح عبر Redirector",
   browserRedirectorDescription: "استحواذ على تنقل youtube.com: إعادة توجيه الروابط إلى هذه النسخة، حيث تُعرض النسخة المحلية إن وُجدت أو يعاد التوجيه إلى youtube.com.",
   browserRedirectorOpenGuide: "فتح دليل إعداد Redirector",

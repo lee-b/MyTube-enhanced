@@ -1,5 +1,5 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import ExternalSearchSection from '../ExternalSearchSection';
 import { VideoSearchResult } from '../../types';
@@ -175,29 +175,14 @@ describe('ExternalSearchSection', () => {
             expect(view).toHaveAttribute('href', '/from/youtube/video/6SxEj1cujQE');
         });
 
-        it('disables the View button with a hint when the result is not local yet', async () => {
+        it('keeps the View button clickable even for results that are not local yet', async () => {
+            // Non-local results stream through the instance instead of
+            // demanding a manual download first.
             renderYoutubeSection({ results: [{ ...youtubeResult, local: false }] });
 
-            const view = screen.getByRole('button', { name: /view/i });
-            expect(view).toBeDisabled();
-            expect(view).not.toHaveAttribute('href');
-
-            // The disabled state is explained by the tooltip text, which the
-            // Tooltip only mounts once the user hovers the button.
-            fireEvent.mouseOver(view);
-            // MUI mounts the tooltip popper asynchronously after the hover
-            // transition, so poll for it.
-            const tooltip = await waitFor(() => screen.getByRole('tooltip'));
-            expect(tooltip).toHaveTextContent('viewNotLocalHint');
-        });
-
-        it('keeps the View button clickable for payloads that predate the local flag', () => {
-            renderYoutubeSection({ results: [{ ...youtubeResult, local: undefined }] });
-
-            // The backend still falls back to youtube.com, so linking through
-            // the takeover target is never worse than the original link.
             const view = screen.getByRole('link', { name: /view/i });
             expect(view).toBeEnabled();
+            expect(view).toHaveAttribute('href', '/from/youtube/video/6SxEj1cujQE');
         });
 
         it('keeps Bilibili cards download-only', () => {

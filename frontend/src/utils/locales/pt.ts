@@ -41,7 +41,6 @@ export const pt = {
   pasteUrl: "Colar URL de vídeo ou coleção",
   download: "Baixar",
   view: "Ver",
-  viewNotLocalHint: "Ainda não está na biblioteca",
   browserRedirector: "Assumir navegação com Redirector",
   browserRedirectorDescription: "Assume a navegação do youtube.com: uma extensão de redirecionamento reescreve os links do YouTube para esta instância, servindo a cópia local quando existe (ou voltando ao youtube.com).",
   browserRedirectorOpenGuide: "Abrir o guia de configuração do Redirector",

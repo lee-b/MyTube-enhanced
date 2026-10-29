@@ -125,7 +125,8 @@ const ExternalSearchSection: React.FC<ExternalSearchSectionProps> = ({
                                         <Typography gutterBottom variant="subtitle1" component="div" sx={{ fontWeight: 600, lineHeight: 1.2, mb: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                                             {/* YouTube results route through the takeover target so a
                                                 locally-downloaded video opens in the local player;
-                                                the backend falls back to youtube.com when it is not. */}
+                                                non-local ones stream through the instance (or fall
+                                                back to youtube.com when no stream is servable). */}
                                             {isYoutube ? (
                                                 <a
                                                     href={`/from/youtube/video/${result.id}`}
@@ -158,37 +159,21 @@ const ExternalSearchSection: React.FC<ExternalSearchSectionProps> = ({
                                         )}
                                     </CardContent>
                                     <CardActions sx={{ p: 2, pt: 0 }}>
-                                        {/* Only YouTube results can be taken over locally; Bilibili keeps
-                                            download as the sole action. The backend resolves the takeover
-                                            target to the local player or falls back to youtube.com, and
-                                            flags which results are already in the library so the View
-                                            button can say "not local yet" instead of bouncing the user
-                                            to youtube.com. */}
-                                        {isYoutube &&
-                                            (result.local === false ? (
-                                                // A disabled <button> swallows mouse events, so the tooltip
-                                                // needs an enabled wrapper element to attach to.
-                                                <Tooltip title={t('viewNotLocalHint')}>
-                                                    <span>
-                                                        <Button
-                                                            variant="outlined"
-                                                            startIcon={<PlayArrow />}
-                                                            disabled
-                                                        >
-                                                            {t('view')}
-                                                        </Button>
-                                                    </span>
-                                                </Tooltip>
-                                            ) : (
-                                                <Button
-                                                    variant="outlined"
-                                                    startIcon={<PlayArrow />}
-                                                    component="a"
-                                                    href={`/from/youtube/video/${result.id}`}
-                                                >
-                                                    {t('view')}
-                                                </Button>
-                                            ))}
+                                        {/* Only YouTube results have a takeover target; Bilibili keeps
+                                            download as the sole action. The backend serves the local
+                                            player when the video is in the library and streams it
+                                            through the instance when it is not, so View is always
+                                            clickable for YouTube results. */}
+                                        {isYoutube && (
+                                            <Button
+                                                variant="outlined"
+                                                startIcon={<PlayArrow />}
+                                                component="a"
+                                                href={`/from/youtube/video/${result.id}`}
+                                            >
+                                                {t('view')}
+                                            </Button>
+                                        )}
                                         <Button
                                             fullWidth
                                             variant="contained"

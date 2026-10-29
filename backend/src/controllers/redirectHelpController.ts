@@ -118,11 +118,12 @@ export const buildRedirectorHelpHtml = (): string => `
 <body>
   <h1>Browser Redirector Takeover</h1>
   <p>
-    MyTube can take over youtube.com navigation for content it already has
-    locally: when you visit a YouTube video or channel, a URL-redirector
-    extension rewrites the address to this instance, which sends you to the
-    local player or author page — or, when the content is not local, straight
-    back to YouTube, so nothing is lost by enabling it.
+    MyTube can take over youtube.com navigation: when you visit a YouTube
+    video or channel, a URL-redirector extension rewrites the address to this
+    instance, which sends you to the local player or author page — or, when
+    the content is not local yet, streams it through this instance (and only
+    hands you back to YouTube if even that fails), so nothing is lost by
+    enabling it.
   </p>
   <p>
     The extension used in this guide is

@@ -41,7 +41,6 @@ export const de = {
   pasteUrl: "Video- oder Sammlungs-URL einfügen",
   download: "Herunterladen",
   view: "Ansehen",
-  viewNotLocalHint: "Noch nicht in der Bibliothek",
   browserRedirector: "Browser-Redirector-Übernahme",
   browserRedirectorDescription: "youtube.com-Navigation übernehmen: Eine Umleitungs-Erweiterung schreibt YouTube-Links auf diese Instanz um und zeigt die lokale Kopie, wenn vorhanden (sonst Rückfall auf youtube.com).",
   browserRedirectorOpenGuide: "Redirector-Einrichtungsanleitung öffnen",

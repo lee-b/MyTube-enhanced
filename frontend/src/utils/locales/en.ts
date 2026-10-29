@@ -17,7 +17,6 @@ export const en = {
   pasteUrl: "Paste video or collection URL",
   download: "Download",
   view: "View",
-  viewNotLocalHint: "Not in the library yet",
   browserRedirector: "Browser Redirector Takeover",
   browserRedirectorDescription: "Take over youtube.com navigation: a URL-redirector extension rewrites YouTube links to this instance, serving the local copy when it exists (or falling back to youtube.com when it does not).",
   browserRedirectorOpenGuide: "Open the Redirector setup guide",
