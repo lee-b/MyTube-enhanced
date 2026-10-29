@@ -18,7 +18,8 @@ Total keys: 1413
 | Section | Keys | First Key | Last Key |
 | --- | ---: | --- | --- |
 | Header | 11 | `myTube` | `instruction` |
-| Home | 42 | `pasteUrl` | `views` |
+| Home | 41 | `pasteUrl` | `views` |
+| Ungrouped | 1 | `showWatched` | `showWatched` |
 | Settings | 4 | `general` | `downloadSettings` |
 | Settings Categories | 247 | `interfaceDisplay` | `enterNewTagName` |
 | Database | 38 | `database` | `cleanupTempFilesConfirmMessage` |
@@ -91,15 +92,14 @@ Total keys: 1413
 | `youtubeTakeoverNotReady` |
 | `youtubeTakeoverWatchOnYoutube` |
 | `youtubeTakeoverProgress` |
-| `browserRedirector` |
-| `browserRedirectorDescription` |
-| `browserRedirectorOpenGuide` |
-| `showWatched` |
 | `hideWatched` |
 | `markWatched` |
 | `markUnwatched` |
 | `watched` |
 | `unwatched` |
+| `browserRedirector` |
+| `browserRedirectorDescription` |
+| `browserRedirectorOpenGuide` |
 | `search` |
 | `recentDownloads` |
 | `noDownloads` |
@@ -126,6 +126,12 @@ Total keys: 1413
 | `noBilibiliResults` |
 | `noVideosYet` |
 | `views` |
+
+### Ungrouped
+
+| Key |
+| --- |
+| `showWatched` |
 
 ### Settings
 
