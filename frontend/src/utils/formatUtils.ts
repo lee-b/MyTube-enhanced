@@ -158,6 +158,71 @@ export const formatDisplayDateTimeMinutes = (
 };
 
 /**
+ * Format a video's upload date (YYYYMMDD from the source platform) as a
+ * relative age, falling back to the absolute date for anything older than a
+ * month. Distinct from formatRelativeDownloadTime, which is about when the
+ * video was downloaded into the library.
+ */
+export const formatVideoUploadTime = (
+  uploadDate?: string,
+  t?: (key: TranslationKey, replacements?: Record<string, string | number>) => string,
+): string => {
+  const getTranslation = (
+    key: 'justNow' | 'today' | 'thisWeek' | 'weeksAgo' | 'unknownDate',
+    replacements?: Record<string, string | number>
+  ): string => {
+    if (t) {
+      return t(key, replacements);
+    }
+    const fallbacks: Record<string, string> = {
+      justNow: "Just now",
+      today: "Today",
+      thisWeek: "This week",
+      weeksAgo: "{weeks}w ago",
+      unknownDate: "Unknown date",
+    };
+    let text = fallbacks[key] || key;
+    if (replacements) {
+      Object.entries(replacements).forEach(([placeholder, value]) => {
+        text = text.replace(`{${placeholder}}`, String(value));
+      });
+    }
+    return text;
+  };
+
+  if (!uploadDate || uploadDate.length !== 8) {
+    return getTranslation("unknownDate");
+  }
+
+  // Parse YYYYMMDD as local midnight to avoid timezone shifting the date.
+  const match = /^(\d{4})(\d{2})(\d{2})$/.exec(uploadDate);
+  if (!match) {
+    return getTranslation("unknownDate");
+  }
+  const upload = new Date(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3])
+  );
+  if (isNaN(upload.getTime())) {
+    return getTranslation("unknownDate");
+  }
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const diffDays = Math.round(
+    (startOfToday.getTime() - upload.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  if (diffDays <= 0) return getTranslation("today");
+  if (diffDays <= 7) return getTranslation("thisWeek");
+  if (diffDays <= 31) {
+    return getTranslation("weeksAgo", { weeks: Math.max(1, Math.floor(diffDays / 7)) });
+  }
+  return formatDate(uploadDate);
+};
+
+/**
  * Format date string YYYYMMDD to YYYY-MM-DD
  */
 export const formatDate = (dateString?: string) => {
