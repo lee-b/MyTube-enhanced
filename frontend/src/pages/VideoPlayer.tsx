@@ -846,6 +846,7 @@ const VideoPlayer: React.FC = () => {
                             onToggleWatched={handleToggleWatched}
                             isTogglingWatched={watchedMutation.isPending}
                             isWatched={(video.viewCount ?? 0) > 0}
+                            showViewCounts={settings?.showViewCounts === true}
                             onSeek={handleDescriptionSeek}
                         />
 

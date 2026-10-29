@@ -1,7 +1,9 @@
+import { CheckCircle, CheckCircleOutline } from '@mui/icons-material';
 import { Avatar, Box, CardContent, Typography, useMediaQuery, useTheme } from '@mui/material';
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useCloudStorageUrl } from '../../hooks/useCloudStorageUrl';
+import { useSettings } from '../../hooks/useSettings';
 import { Video } from '../../types';
 import { authorAvatarFallbackSx } from '../../utils/authorAvatarStyles';
 import { formatRelativeDownloadTime } from '../../utils/formatUtils';
@@ -25,6 +27,7 @@ export const VideoCardContent: React.FC<VideoCardContentProps> = ({
     const { t } = useLanguage();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const { data: settings } = useSettings();
     const avatarUrl = useCloudStorageUrl(video.authorAvatarPath, 'thumbnail');
 
     const authorContainerRef = useRef<HTMLDivElement>(null);
@@ -228,9 +231,22 @@ export const VideoCardContent: React.FC<VideoCardContentProps> = ({
                             {formatRelativeDownloadTime(video.addedAt, video.date, t)}
                         </Typography>
                     </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                        {video.viewCount || 0} {t('views')}
-                    </Typography>
+                    {settings?.showViewCounts === true ? (
+                        <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                            {video.viewCount || 0} {t('views')}
+                        </Typography>
+                    ) : (
+                        <Box sx={{ ml: 1, display: 'flex', alignItems: 'center', gap: 0.5, flex: '0 0 auto' }}>
+                            {(video.viewCount ?? 0) > 0 ? (
+                                <CheckCircle fontSize="inherit" />
+                            ) : (
+                                <CheckCircleOutline fontSize="inherit" />
+                            )}
+                            <Typography variant="caption" color="text.secondary">
+                                {(video.viewCount ?? 0) > 0 ? t('watched') : t('unwatched')}
+                            </Typography>
+                        </Box>
+                    )}
                 </Box>
             </Box>
         </CardContent>

@@ -28,6 +28,8 @@ export const en = {
   hideWatched: "Hide watched",
   markWatched: "Mark watched",
   markUnwatched: "Mark unwatched",
+  watched: "Watched",
+  unwatched: "Unwatched",
   search: "Search",
   recentDownloads: "Recent Downloads",
   noDownloads: "No downloads yet",

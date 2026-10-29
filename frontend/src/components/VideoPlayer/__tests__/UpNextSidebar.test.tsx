@@ -17,6 +17,10 @@ vi.mock('../../VideoCard', () => ({
     )
 }));
 
+vi.mock('../../../hooks/useSettings', () => ({
+    useSettings: () => ({ data: undefined }),
+}));
+
 vi.mock('../../../contexts/AuthContext', () => ({
     useAuth: () => ({ userRole: 'admin' })
 }));

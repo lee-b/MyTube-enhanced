@@ -294,6 +294,8 @@ export interface Settings {
   mediaServerExportMode?: 'off' | 'nfo' | 'nfo_and_source_json';
   // Statistics
   statisticsEnabled?: boolean;
+  /** Deployment-level flag from MYTUBE_SHOW_VIEW_COUNTS; default hides counts. */
+  showViewCounts?: boolean;
   statisticsRetentionDays?: number | null;
   statisticsCaptureSearchText?: boolean;
   statisticsTrackVisitorActivity?: boolean;

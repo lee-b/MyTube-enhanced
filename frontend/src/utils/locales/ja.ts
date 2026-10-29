@@ -52,6 +52,8 @@ export const ja = {
   hideWatched: "視聴済みを隠す",
   markWatched: "視聴済みにする",
   markUnwatched: "未視聴にする",
+  watched: "視聴済み",
+  unwatched: "未視聴",
   search: "検索",
   recentDownloads: "最近のダウンロード",
   noDownloads: "ダウンロードはまだありません",

@@ -36,6 +36,7 @@ interface VideoInfoProps {
     onToggleWatched?: () => void;
     isTogglingWatched?: boolean;
     isWatched?: boolean;
+    showViewCounts?: boolean;
     onSeek?: (seconds: number) => void;
 }
 
@@ -64,6 +65,7 @@ const VideoInfo: React.FC<VideoInfoProps> = ({
     onToggleWatched,
     isTogglingWatched = false,
     isWatched = false,
+    showViewCounts,
     onSeek
 }) => {
     const { videoRef, videoResolution, needsDetection } = useVideoResolution(video);
@@ -110,6 +112,7 @@ const VideoInfo: React.FC<VideoInfoProps> = ({
             <VideoRating
                 rating={video.rating}
                 viewCount={video.viewCount}
+                showViewCounts={showViewCounts}
                 onRatingChange={onRatingChange}
             />
 

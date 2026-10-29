@@ -1,5 +1,6 @@
 import { Request } from "express";
 import { getDeploymentSecurityModel } from "../../config/adminTrust";
+import { isViewCountDisplayEnabled } from "../../config/viewCounts";
 import { resolveFilenameNamingConfig } from "../../services/filenameTemplate/config";
 import * as storageService from "../../services/storageService";
 import { Settings } from "../../types/settings";
@@ -78,6 +79,7 @@ export const buildSafeSettingsPayload = (
     downloadFilenameMode: resolvedFilenameNaming.mode,
     downloadFilenamePresetId: resolvedFilenameNaming.matchedPresetId,
     deploymentSecurity: getDeploymentSecurityModel(),
+    showViewCounts: isViewCountDisplayEnabled(),
     password: undefined,
     visitorPassword: undefined,
     liveTranslationApiKey: undefined,

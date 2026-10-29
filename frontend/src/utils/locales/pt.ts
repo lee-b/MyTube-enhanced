@@ -54,6 +54,8 @@ export const pt = {
   hideWatched: "Ocultar assistidos",
   markWatched: "Marcar como assistido",
   markUnwatched: "Marcar como não assistido",
+  watched: "Assistido",
+  unwatched: "Não assistido",
   search: "Pesquisar",
   recentDownloads: "Downloads Recentes",
   noDownloads: "Nenhum download ainda",

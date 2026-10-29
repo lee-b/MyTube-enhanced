@@ -54,6 +54,8 @@ export const fr = {
   hideWatched: "Masquer les vues",
   markWatched: "Marquer comme vu",
   markUnwatched: "Marquer comme non vu",
+  watched: "Vu",
+  unwatched: "Non vu",
   search: "Rechercher",
   recentDownloads: "Téléchargements récents",
   noDownloads: "Aucun téléchargement pour le moment",

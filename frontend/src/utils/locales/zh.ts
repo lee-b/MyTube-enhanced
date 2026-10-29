@@ -50,6 +50,8 @@ export const zh = {
   hideWatched: "隐藏已观看",
   markWatched: "标记为已观看",
   markUnwatched: "标记为未观看",
+  watched: "已观看",
+  unwatched: "未观看",
   search: "搜索",
   recentDownloads: "最近下载",
   noDownloads: "暂无下载",
