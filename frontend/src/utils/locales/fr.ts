@@ -44,6 +44,8 @@ export const fr = {
   download: "Télécharger",
   markWatched: "Marquer comme vu",
   markUnwatched: "Marquer comme non vu",
+  watched: "Vu",
+  unwatched: "Non vu",
   search: "Rechercher",
   recentDownloads: "Téléchargements récents",
   noDownloads: "Aucun téléchargement pour le moment",

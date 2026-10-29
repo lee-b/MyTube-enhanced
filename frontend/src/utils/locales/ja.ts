@@ -42,6 +42,8 @@ export const ja = {
   download: "ダウンロード",
   markWatched: "視聴済みにする",
   markUnwatched: "未視聴にする",
+  watched: "視聴済み",
+  unwatched: "未視聴",
   search: "検索",
   recentDownloads: "最近のダウンロード",
   noDownloads: "ダウンロードはまだありません",

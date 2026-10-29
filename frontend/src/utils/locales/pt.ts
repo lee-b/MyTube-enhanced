@@ -44,6 +44,8 @@ export const pt = {
   download: "Baixar",
   markWatched: "Marcar como assistido",
   markUnwatched: "Marcar como não assistido",
+  watched: "Assistido",
+  unwatched: "Não assistido",
   search: "Pesquisar",
   recentDownloads: "Downloads Recentes",
   noDownloads: "Nenhum download ainda",

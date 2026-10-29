@@ -42,6 +42,8 @@ export const ko = {
   download: "다운로드",
   markWatched: "시청 완료로 표시",
   markUnwatched: "시청 전으로 표시",
+  watched: "시청함",
+  unwatched: "시청 안 함",
   search: "검색",
   recentDownloads: "최근 다운로드",
   noDownloads: "아직 다운로드 없음",

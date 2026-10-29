@@ -44,6 +44,8 @@ export const de = {
   download: "Herunterladen",
   markWatched: "Als gesehen markieren",
   markUnwatched: "Als ungesehen markieren",
+  watched: "Gesehen",
+  unwatched: "Ungesehen",
   search: "Suchen",
   recentDownloads: "Letzte Downloads",
   noDownloads: "Noch keine Downloads",

@@ -58,6 +58,10 @@ vi.mock('../../contexts/VideoContext', () => ({
 }));
 
 const mockPrefetchVideo = vi.fn();
+vi.mock('../../hooks/useSettings', () => ({
+    useSettings: () => ({ data: undefined }),
+}));
+
 vi.mock('../../hooks/useVideoPrefetch', () => ({
     useVideoPrefetch: () => ({
         prefetchVideo: mockPrefetchVideo,

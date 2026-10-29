@@ -5,10 +5,11 @@ import { useLanguage } from '../../../contexts/LanguageContext';
 interface VideoRatingProps {
     rating: number | undefined;
     viewCount: number | undefined;
+    showViewCounts?: boolean;
     onRatingChange: (newRating: number) => Promise<void>;
 }
 
-const VideoRating: React.FC<VideoRatingProps> = ({ rating, viewCount, onRatingChange }) => {
+const VideoRating: React.FC<VideoRatingProps> = ({ rating, viewCount, showViewCounts, onRatingChange }) => {
     const { t } = useLanguage();
 
     const handleRatingChangeInternal = (_: React.SyntheticEvent, newValue: number | null) => {
@@ -27,7 +28,9 @@ const VideoRating: React.FC<VideoRatingProps> = ({ rating, viewCount, onRatingCh
                 {rating ? `` : t('rateThisVideo')}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
-                {viewCount || 0} {t('views')}
+                {showViewCounts === true
+                    ? `${viewCount || 0} ${t('views')}`
+                    : (viewCount ?? 0) > 0 ? t('watched') : t('unwatched')}
             </Typography>
         </Box>
     );

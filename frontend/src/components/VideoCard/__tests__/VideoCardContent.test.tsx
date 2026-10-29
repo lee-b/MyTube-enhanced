@@ -8,6 +8,11 @@ vi.mock('../../../contexts/LanguageContext', () => ({
     useLanguage: () => ({ t: (key: string) => key }),
 }));
 
+const mockSettingsData: { showViewCounts?: boolean } = {};
+vi.mock('../../../hooks/useSettings', () => ({
+    useSettings: () => ({ data: mockSettingsData }),
+}));
+
 vi.mock('../../../utils/formatUtils', () => ({
     formatDate: () => '2023-01-01',
     formatRelativeDownloadTime: () => '2023-01-01',
@@ -46,7 +51,38 @@ describe('VideoCardContent', () => {
         expect(screen.getByText('Test Video Title')).toBeInTheDocument();
         expect(screen.getByText('Test Author')).toBeInTheDocument();
         expect(screen.getByText('2023-01-01')).toBeInTheDocument();
-        expect(screen.getByText('100 views')).toBeInTheDocument();
+        // View counts are internal by default: cards show watched status.
+        expect(screen.queryByText('100 views')).not.toBeInTheDocument();
+        expect(screen.getByText('watched')).toBeInTheDocument();
+    });
+
+    it('shows the internal view count only when the deployment opts in', () => {
+        mockSettingsData.showViewCounts = true;
+        try {
+            render(
+                <VideoCardContent
+                    video={defaultVideo}
+                    collectionInfo={defaultCollectionInfo}
+                    onAuthorClick={mockOnAuthorClick}
+                />
+            );
+            expect(screen.getByText('100 views')).toBeInTheDocument();
+            expect(screen.queryByText('unwatched')).not.toBeInTheDocument();
+        } finally {
+            delete mockSettingsData.showViewCounts;
+        }
+    });
+
+    it('marks watched videos as watched instead of showing counts', () => {
+        render(
+            <VideoCardContent
+                video={{ ...defaultVideo, viewCount: 2 }}
+                collectionInfo={defaultCollectionInfo}
+                onAuthorClick={mockOnAuthorClick}
+            />
+        );
+        expect(screen.queryByText('2 views')).not.toBeInTheDocument();
+        expect(screen.getByText('watched')).toBeInTheDocument();
     });
 
     it('should handle author click', async () => {

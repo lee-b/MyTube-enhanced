@@ -44,6 +44,8 @@ export const ru = {
   download: "Скачать",
   markWatched: "Отметить просмотренным",
   markUnwatched: "Снять отметку просмотра",
+  watched: "Просмотрено",
+  unwatched: "Не просмотрено",
   search: "Поиск",
   recentDownloads: "Недавние загрузки",
   noDownloads: "Загрузок пока нет",

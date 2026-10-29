@@ -41,6 +41,8 @@ export const ar = {
   download: "تحميل",
   markWatched: "تمييز كمشاهد",
   markUnwatched: "تمييز كغير مشاهد",
+  watched: "تمت المشاهدة",
+  unwatched: "لم تتم المشاهدة",
   search: "بحث",
   recentDownloads: "التحميلات الأخيرة",
   noDownloads: "لا توجد تحميلات بعد",

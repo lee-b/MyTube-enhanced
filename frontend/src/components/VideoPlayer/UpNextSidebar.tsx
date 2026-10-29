@@ -22,6 +22,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { neutral, overlay } from '../../theme/colors';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSettings } from '../../hooks/useSettings';
 import { useThumbnailCandidates } from '../../hooks/useThumbnailCandidates';
 import { Video } from '../../types';
 import { formatDate, formatDuration } from '../../utils/formatUtils';
@@ -102,6 +103,7 @@ const UpNextSidebar: React.FC<UpNextSidebarProps> = ({
     onAddToCollection
 }) => {
     const { t } = useLanguage();
+    const { data: settings } = useSettings();
     const { userRole } = useAuth();
     const isVisitor = userRole === 'visitor';
     const [hoveredVideoId, setHoveredVideoId] = useState<string | null>(null);
@@ -173,7 +175,9 @@ const UpNextSidebar: React.FC<UpNextSidebarProps> = ({
                                         {formatDate(relatedVideo.date)}
                                     </Typography>
                                     <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                                        ·  {relatedVideo.viewCount || 0} {t('views')}
+                                        ·  {settings?.showViewCounts === true
+                                            ? `${relatedVideo.viewCount || 0} ${t('views')}`
+                                            : (relatedVideo.viewCount ?? 0) > 0 ? t('watched') : t('unwatched')}
                                     </Typography>
                                 </Box>
 
