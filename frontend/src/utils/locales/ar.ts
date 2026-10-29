@@ -37,6 +37,8 @@ export const ar = {
   // Home
   pasteUrl: "لصق رابط الفيديو أو المجموعة",
   download: "تحميل",
+  showWatched: "إظهار ما تم مشاهدته",
+  hideWatched: "إخفاء ما تم مشاهدته",
   search: "بحث",
   recentDownloads: "التحميلات الأخيرة",
   noDownloads: "لا توجد تحميلات بعد",

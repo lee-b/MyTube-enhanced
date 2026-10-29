@@ -38,6 +38,8 @@ export const ja = {
   // Home
   pasteUrl: "動画またはコレクションのURLを貼り付け",
   download: "ダウンロード",
+  showWatched: "視聴済みを表示",
+  hideWatched: "視聴済みを隠す",
   search: "検索",
   recentDownloads: "最近のダウンロード",
   noDownloads: "ダウンロードはまだありません",

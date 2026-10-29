@@ -40,6 +40,8 @@ export const fr = {
   // Home
   pasteUrl: "Coller l'URL de la vidéo ou de la collection",
   download: "Télécharger",
+  showWatched: "Afficher les vues",
+  hideWatched: "Masquer les vues",
   search: "Rechercher",
   recentDownloads: "Téléchargements récents",
   noDownloads: "Aucun téléchargement pour le moment",

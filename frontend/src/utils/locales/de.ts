@@ -40,6 +40,8 @@ export const de = {
   // Home
   pasteUrl: "Video- oder Sammlungs-URL einfügen",
   download: "Herunterladen",
+  showWatched: "Angesehene anzeigen",
+  hideWatched: "Angesehene ausblenden",
   search: "Suchen",
   recentDownloads: "Letzte Downloads",
   noDownloads: "Noch keine Downloads",

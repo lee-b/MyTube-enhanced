@@ -16,6 +16,8 @@ export const en = {
   // Home
   pasteUrl: "Paste video or collection URL",
   download: "Download",
+  showWatched: "Show watched",
+  hideWatched: "Hide watched",
   search: "Search",
   recentDownloads: "Recent Downloads",
   noDownloads: "No downloads yet",

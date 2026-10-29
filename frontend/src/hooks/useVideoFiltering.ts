@@ -69,6 +69,8 @@ interface UseVideoFilteringProps {
   collections: Collection[];
   authorTags?: Record<string, string[]>;
   collectionTags?: Record<string, string[]>;
+  /** Hide videos that have already been played (viewCount > 0). */
+  hideWatched?: boolean;
 }
 
 export const useVideoFiltering = ({
@@ -78,6 +80,7 @@ export const useVideoFiltering = ({
   collections,
   authorTags,
   collectionTags,
+  hideWatched,
 }: UseVideoFilteringProps): Video[] => {
   const videoArray = useMemo(
     () => (Array.isArray(videos) ? videos : []),
@@ -150,15 +153,19 @@ export const useVideoFiltering = ({
     }
 
     if (viewMode === "all-videos") {
-      return videoArray.filter((video) =>
-        videoMatchesTags(
-          video,
-          normalizedSelectedTags,
-          videoTagSetById,
-          authorTagSetByAuthor,
-          collectionTagSetById,
-          collectionIdsByVideoId
-        )
+      // A missing viewCount (statistics disabled) counts as unwatched, so
+      // the filter degrades to a no-op instead of hiding everything.
+      return videoArray.filter(
+        (video) =>
+          !(hideWatched && (video.viewCount ?? 0) > 0) &&
+          videoMatchesTags(
+            video,
+            normalizedSelectedTags,
+            videoTagSetById,
+            authorTagSetByAuthor,
+            collectionTagSetById,
+            collectionIdsByVideoId
+          )
       );
     }
 
@@ -216,6 +223,7 @@ export const useVideoFiltering = ({
     return videoArray.filter((video) => matchingFirstVideoIds.has(video.id));
   }, [
     viewMode,
+    hideWatched,
     videoArray,
     normalizedSelectedTags,
     collections,

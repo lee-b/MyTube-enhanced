@@ -24,6 +24,8 @@ describe('HomeHeader', () => {
         sortAnchorEl: null,
         onSortClick: vi.fn(),
         onSortClose: vi.fn(),
+        showWatched: false,
+        onShowWatchedChange: vi.fn(),
     };
 
     it('should render toggle buttons properly', () => {
@@ -120,5 +122,49 @@ describe('HomeHeader', () => {
         const clearButton = screen.getByRole('button', { name: /filteredByTags/i });
         fireEvent.click(clearButton);
         expect(onClearTagFilter).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides watched videos by default and toggles the callback', () => {
+        const onShowWatchedChange = vi.fn();
+        render(
+            <HomeHeader
+                {...defaultProps}
+                showWatched={false}
+                onShowWatchedChange={onShowWatchedChange}
+            />
+        );
+
+        const toggle = screen.getByRole('button', { name: 'showWatched' });
+        expect(toggle).toBeEnabled();
+        fireEvent.click(toggle);
+        expect(onShowWatchedChange).toHaveBeenCalledWith(true);
+    });
+
+    it('offers hiding watched videos again when they are shown', () => {
+        const onShowWatchedChange = vi.fn();
+        render(
+            <HomeHeader
+                {...defaultProps}
+                showWatched={true}
+                onShowWatchedChange={onShowWatchedChange}
+            />
+        );
+
+        const toggle = screen.getByRole('button', { name: 'hideWatched' });
+        fireEvent.click(toggle);
+        expect(onShowWatchedChange).toHaveBeenCalledWith(false);
+    });
+
+    it('disables the watched toggle outside the all-videos view', () => {
+        render(
+            <HomeHeader
+                {...defaultProps}
+                viewMode={'history' as ViewMode}
+                showWatched={false}
+                onShowWatchedChange={vi.fn()}
+            />
+        );
+
+        expect(screen.getByRole('button', { name: 'showWatched' })).toBeDisabled();
     });
 });

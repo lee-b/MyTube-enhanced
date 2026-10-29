@@ -36,6 +36,8 @@ export const zh = {
   // Home
   pasteUrl: "粘贴视频或合集链接",
   download: "下载",
+  showWatched: "显示已观看",
+  hideWatched: "隐藏已观看",
   search: "搜索",
   recentDownloads: "最近下载",
   noDownloads: "暂无下载",

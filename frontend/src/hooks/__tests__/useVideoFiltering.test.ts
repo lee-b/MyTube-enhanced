@@ -11,6 +11,7 @@ describe("useVideoFiltering", () => {
       tags: ["tag1"],
       author: "Alice",
       lastPlayedAt: 100,
+      viewCount: 3,
     } as Video,
     {
       id: "v2",
@@ -18,6 +19,7 @@ describe("useVideoFiltering", () => {
       tags: ["tag2"],
       author: "Bob",
       lastPlayedAt: 200,
+      viewCount: 1,
     } as Video,
     {
       id: "v3",
@@ -190,5 +192,49 @@ describe("useVideoFiltering", () => {
 
     expect(result.current).toHaveLength(1);
     expect(result.current[0].id).toBe("v1");
+  });
+
+  it('hides already-watched videos in all-videos view when hideWatched is set', () => {
+    const { result } = renderHook(() =>
+      useVideoFiltering({
+        videos: mockVideos,
+        viewMode: "all-videos",
+        selectedTags: [],
+        collections: mockCollections,
+        hideWatched: true,
+      })
+    );
+
+    expect(result.current.map((video) => video.id)).toEqual(["v3"]);
+  });
+
+  it('treats a missing viewCount as unwatched when hiding watched videos', () => {
+    const { result } = renderHook(() =>
+      useVideoFiltering({
+        videos: mockVideos,
+        viewMode: "all-videos",
+        selectedTags: [],
+        collections: mockCollections,
+        hideWatched: true,
+      })
+    );
+
+    // v3 has no viewCount (e.g. statistics disabled): it must stay visible.
+    expect(result.current.some((video) => video.id === "v3")).toBe(true);
+  });
+
+  it('ignores hideWatched outside the all-videos view', () => {
+    const { result } = renderHook(() =>
+      useVideoFiltering({
+        videos: mockVideos,
+        viewMode: "history",
+        selectedTags: [],
+        collections: mockCollections,
+        hideWatched: true,
+      })
+    );
+
+    // History is the watched view by definition: all played videos show.
+    expect(result.current.map((video) => video.id)).toEqual(["v2", "v1"]);
   });
 });

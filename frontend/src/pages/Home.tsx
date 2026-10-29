@@ -109,6 +109,16 @@ const Home: React.FC<HomeProps> = ({ initialViewMode }) => {
     // Add default empty array to ensure videos is always an array
     const videoArray = Array.isArray(videos) ? videos : [];
 
+    // Watched-video filter: hidden by default so the front page surfaces
+    // unseen content. Persisted per browser like the sort option.
+    const [showWatched, setShowWatched] = useState<boolean>(
+        () => localStorage.getItem('homeShowWatched') === 'true'
+    );
+    const handleShowWatchedChange = useCallback((show: boolean) => {
+        setShowWatched(show);
+        localStorage.setItem('homeShowWatched', String(show));
+    }, []);
+
     // Filter videos based on view mode
     const filteredVideos = useVideoFiltering({
         videos: videoArray,
@@ -116,7 +126,10 @@ const Home: React.FC<HomeProps> = ({ initialViewMode }) => {
         selectedTags,
         collections,
         authorTags: settings?.authorTags,
-        collectionTags: settings?.collectionTags
+        collectionTags: settings?.collectionTags,
+        // History is already the "watched" view, so the toggle only bites
+        // in the all-videos grid.
+        hideWatched: viewMode === 'all-videos' && !showWatched
     });
 
     // Use the custom hook for sorting
@@ -257,6 +270,8 @@ const Home: React.FC<HomeProps> = ({ initialViewMode }) => {
                             sortAnchorEl={sortAnchorEl}
                             onSortClick={handleSortClick}
                             onSortClose={handleSortClose}
+                            showWatched={showWatched}
+                            onShowWatchedChange={handleShowWatchedChange}
                         />
                         {viewMode === 'favorite' ? (
                             <FavoritePage

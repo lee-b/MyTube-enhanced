@@ -40,6 +40,8 @@ export const ru = {
   // Home
   pasteUrl: "Вставьте URL видео или коллекции",
   download: "Скачать",
+  showWatched: "Показать просмотренные",
+  hideWatched: "Скрыть просмотренные",
   search: "Поиск",
   recentDownloads: "Недавние загрузки",
   noDownloads: "Загрузок пока нет",

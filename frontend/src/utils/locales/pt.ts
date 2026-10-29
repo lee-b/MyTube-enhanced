@@ -40,6 +40,8 @@ export const pt = {
   // Home
   pasteUrl: "Colar URL de vídeo ou coleção",
   download: "Baixar",
+  showWatched: "Mostrar assistidos",
+  hideWatched: "Ocultar assistidos",
   search: "Pesquisar",
   recentDownloads: "Downloads Recentes",
   noDownloads: "Nenhum download ainda",

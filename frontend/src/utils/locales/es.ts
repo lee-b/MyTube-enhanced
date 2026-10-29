@@ -40,6 +40,8 @@ export const es = {
   // Home
   pasteUrl: "Pegar URL de video o colección",
   download: "Descargar",
+  showWatched: "Mostrar vistos",
+  hideWatched: "Ocultar vistos",
   search: "Buscar",
   recentDownloads: "Descargas Recientes",
   noDownloads: "Sin descargas aún",
