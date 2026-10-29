@@ -1,5 +1,5 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import ExternalSearchSection from '../ExternalSearchSection';
 import { VideoSearchResult } from '../../types';
@@ -31,6 +31,7 @@ const youtubeResult: VideoSearchResult = {
     viewCount: 4321,
     sourceUrl: 'https://www.youtube.com/watch?v=6SxEj1cujQE',
     source: 'youtube',
+    local: true,
 };
 
 const renderYoutubeSection = (overrides: Partial<React.ComponentProps<typeof ExternalSearchSection>> = {}) =>
@@ -172,6 +173,31 @@ describe('ExternalSearchSection', () => {
             // MUI renders the Button as an anchor because it carries a href.
             const view = screen.getByRole('link', { name: /view/i });
             expect(view).toHaveAttribute('href', '/from/youtube/video/6SxEj1cujQE');
+        });
+
+        it('disables the View button with a hint when the result is not local yet', async () => {
+            renderYoutubeSection({ results: [{ ...youtubeResult, local: false }] });
+
+            const view = screen.getByRole('button', { name: /view/i });
+            expect(view).toBeDisabled();
+            expect(view).not.toHaveAttribute('href');
+
+            // The disabled state is explained by the tooltip text, which the
+            // Tooltip only mounts once the user hovers the button.
+            fireEvent.mouseOver(view);
+            // MUI mounts the tooltip popper asynchronously after the hover
+            // transition, so poll for it.
+            const tooltip = await waitFor(() => screen.getByRole('tooltip'));
+            expect(tooltip).toHaveTextContent('viewNotLocalHint');
+        });
+
+        it('keeps the View button clickable for payloads that predate the local flag', () => {
+            renderYoutubeSection({ results: [{ ...youtubeResult, local: undefined }] });
+
+            // The backend still falls back to youtube.com, so linking through
+            // the takeover target is never worse than the original link.
+            const view = screen.getByRole('link', { name: /view/i });
+            expect(view).toBeEnabled();
         });
 
         it('keeps Bilibili cards download-only', () => {

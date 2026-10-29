@@ -41,6 +41,7 @@ export const es = {
   pasteUrl: "Pegar URL de video o colección",
   download: "Descargar",
   view: "Ver",
+  viewNotLocalHint: "Aún no está en la biblioteca",
   search: "Buscar",
   recentDownloads: "Descargas Recientes",
   noDownloads: "Sin descargas aún",

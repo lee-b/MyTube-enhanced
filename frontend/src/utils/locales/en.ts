@@ -17,6 +17,7 @@ export const en = {
   pasteUrl: "Paste video or collection URL",
   download: "Download",
   view: "View",
+  viewNotLocalHint: "Not in the library yet",
   search: "Search",
   recentDownloads: "Recent Downloads",
   noDownloads: "No downloads yet",

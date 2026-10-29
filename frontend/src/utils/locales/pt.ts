@@ -41,6 +41,7 @@ export const pt = {
   pasteUrl: "Colar URL de vídeo ou coleção",
   download: "Baixar",
   view: "Ver",
+  viewNotLocalHint: "Ainda não está na biblioteca",
   search: "Pesquisar",
   recentDownloads: "Downloads Recentes",
   noDownloads: "Nenhum download ainda",

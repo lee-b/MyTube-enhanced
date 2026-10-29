@@ -160,17 +160,35 @@ const ExternalSearchSection: React.FC<ExternalSearchSectionProps> = ({
                                     <CardActions sx={{ p: 2, pt: 0 }}>
                                         {/* Only YouTube results can be taken over locally; Bilibili keeps
                                             download as the sole action. The backend resolves the takeover
-                                            target to the local player or falls back to youtube.com. */}
-                                        {isYoutube && (
-                                            <Button
-                                                variant="outlined"
-                                                startIcon={<PlayArrow />}
-                                                component="a"
-                                                href={`/from/youtube/video/${result.id}`}
-                                            >
-                                                {t('view')}
-                                            </Button>
-                                        )}
+                                            target to the local player or falls back to youtube.com, and
+                                            flags which results are already in the library so the View
+                                            button can say "not local yet" instead of bouncing the user
+                                            to youtube.com. */}
+                                        {isYoutube &&
+                                            (result.local === false ? (
+                                                // A disabled <button> swallows mouse events, so the tooltip
+                                                // needs an enabled wrapper element to attach to.
+                                                <Tooltip title={t('viewNotLocalHint')}>
+                                                    <span>
+                                                        <Button
+                                                            variant="outlined"
+                                                            startIcon={<PlayArrow />}
+                                                            disabled
+                                                        >
+                                                            {t('view')}
+                                                        </Button>
+                                                    </span>
+                                                </Tooltip>
+                                            ) : (
+                                                <Button
+                                                    variant="outlined"
+                                                    startIcon={<PlayArrow />}
+                                                    component="a"
+                                                    href={`/from/youtube/video/${result.id}`}
+                                                >
+                                                    {t('view')}
+                                                </Button>
+                                            ))}
                                         <Button
                                             fullWidth
                                             variant="contained"

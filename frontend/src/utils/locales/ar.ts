@@ -38,6 +38,7 @@ export const ar = {
   pasteUrl: "لصق رابط الفيديو أو المجموعة",
   download: "تحميل",
   view: "مشاهدة",
+  viewNotLocalHint: "ليست في المكتبة بعد",
   search: "بحث",
   recentDownloads: "التحميلات الأخيرة",
   noDownloads: "لا توجد تحميلات بعد",

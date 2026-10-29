@@ -52,6 +52,11 @@ export interface VideoSearchResult {
   viewCount?: number;
   sourceUrl: string;
   source: "youtube" | "bilibili";
+  /** Whether the library already holds this video. The backend annotates
+   * search results from the download-tracking rows; payloads that predate the
+   * flag leave it unset and stay clickable (the takeover target falls back
+   * to the original URL when the content is not local). */
+  local?: boolean;
 }
 
 export interface Collection {
