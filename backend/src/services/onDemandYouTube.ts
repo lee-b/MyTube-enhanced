@@ -1,4 +1,5 @@
 import { logger } from "../utils/logger";
+import downloadManager from "./downloadManager";
 import * as downloadService from "./downloadService";
 import * as storageService from "./storageService";
 type VisibilityRole = import("../services/storageService").VideoCallerRole | undefined;
@@ -92,20 +93,41 @@ export function queueOnDemandDownload(sourceVideoId: string): void {
     `On-demand YouTube: queueing download for id ${sourceVideoId} (${downloadId})`
   );
 
-  downloadService
-    .downloadYouTubeVideo(youtubeWatchUrl(sourceVideoId), { downloadId })
-    .then(() => {
-      logger.info(
-        `On-demand YouTube: download for id ${sourceVideoId} completed`
-      );
-    })
-    .catch((error: unknown) => {
-      logger.error(
-        `On-demand YouTube: download for id ${sourceVideoId} failed:`,
-        error instanceof Error ? error : new Error(String(error))
-      );
-    })
-    .finally(() => {
-      inFlightSourceIds.delete(sourceVideoId);
-    });
+  // Route through the download manager (the same path a manual download
+  // takes) so the yt-dlp child's cancellation checks see the task as active.
+  try {
+    const downloadTask = downloadService.createDownloadTask(
+      "youtube",
+      youtubeWatchUrl(sourceVideoId),
+      downloadId
+    );
+    downloadManager
+      .addDownload(
+        downloadTask,
+        downloadId,
+        `On-demand YouTube ${sourceVideoId}`,
+        youtubeWatchUrl(sourceVideoId),
+        "youtube"
+      )
+      .then(() => {
+        logger.info(
+          `On-demand YouTube: download for id ${sourceVideoId} completed`
+        );
+      })
+      .catch((error: unknown) => {
+        logger.error(
+          `On-demand YouTube: download for id ${sourceVideoId} failed:`,
+          error instanceof Error ? error : new Error(String(error))
+        );
+      })
+      .finally(() => {
+        inFlightSourceIds.delete(sourceVideoId);
+      });
+  } catch (error) {
+    inFlightSourceIds.delete(sourceVideoId);
+    logger.error(
+      `On-demand YouTube: could not queue download for id ${sourceVideoId}:`,
+      error instanceof Error ? error : new Error(String(error))
+    );
+  }
 }

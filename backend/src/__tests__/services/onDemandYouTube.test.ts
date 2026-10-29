@@ -1,11 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const downloadMocks = vi.hoisted(() => ({
+  createDownloadTask: vi.fn(() => "download-task"),
+  addDownload: vi.fn(),
   downloadYouTubeVideo: vi.fn(),
 }));
 
 vi.mock("../../services/downloadService", () => ({
-  downloadYouTubeVideo: downloadMocks.downloadYouTubeVideo,
+  createDownloadTask: downloadMocks.createDownloadTask,
+  downloadYouTubeVideo: downloadMocks.addDownload,
+}));
+
+vi.mock("../../services/downloadManager", () => ({
+  default: { addDownload: downloadMocks.addDownload },
 }));
 
 const storageMocks = vi.hoisted(() => ({
@@ -43,8 +50,8 @@ const flushMicrotasks = async (): Promise<void> => {
 
 describe("onDemandYouTube", () => {
   beforeEach(async () => {
-    downloadMocks.downloadYouTubeVideo.mockReset();
-    downloadMocks.downloadYouTubeVideo.mockResolvedValue({});
+    downloadMocks.addDownload.mockReset();
+    downloadMocks.addDownload.mockResolvedValue({});
     storageMocks.checkVideoDownloadBySourceId.mockReset().mockReturnValue({
       ...notFoundCheck,
     });
@@ -58,17 +65,19 @@ describe("onDemandYouTube", () => {
     it("queues a background download through the regular yt-dlp stack", () => {
       queueOnDemandDownload("6SxEj1cujQE");
 
-      expect(downloadMocks.downloadYouTubeVideo).toHaveBeenCalledTimes(1);
-      expect(downloadMocks.downloadYouTubeVideo).toHaveBeenCalledWith(
-        "https://www.youtube.com/watch?v=6SxEj1cujQE",
-        expect.objectContaining({ downloadId: expect.stringMatching(/^ondemand-6SxEj1cujQE-/) })
-      );
+      expect(downloadMocks.addDownload).toHaveBeenCalledTimes(1);
+      const [task, id, title, sourceUrl, type] =
+        downloadMocks.addDownload.mock.calls[0];
+      expect(task).toBe("download-task");
+      expect(id).toMatch(/^ondemand-6SxEj1cujQE-/);
+      expect(sourceUrl).toBe("https://www.youtube.com/watch?v=6SxEj1cujQE");
+      expect(type).toBe("youtube");
     });
 
     it("does not queue duplicate downloads for the same video while one runs", async () => {
       // A slow download (still pending) must hold the dedupe.
       let releaseDownload: ((value?: unknown) => void) | undefined;
-      downloadMocks.downloadYouTubeVideo.mockReturnValue(
+      downloadMocks.addDownload.mockReturnValue(
         new Promise((resolve) => {
           releaseDownload = resolve;
         })
@@ -77,14 +86,14 @@ describe("onDemandYouTube", () => {
       queueOnDemandDownload("6SxEj1cujQE");
       queueOnDemandDownload("6SxEj1cujQE");
 
-      expect(downloadMocks.downloadYouTubeVideo).toHaveBeenCalledTimes(1);
+      expect(downloadMocks.addDownload).toHaveBeenCalledTimes(1);
 
       releaseDownload?.();
       await flushMicrotasks();
     });
 
     it("allows re-queueing after a download finished or failed", async () => {
-      downloadMocks.downloadYouTubeVideo
+      downloadMocks.addDownload
         .mockRejectedValueOnce(new Error("boom"))
         .mockResolvedValueOnce(undefined);
 
@@ -94,7 +103,7 @@ describe("onDemandYouTube", () => {
 
       queueOnDemandDownload("6SxEj1cujQE");
 
-      expect(downloadMocks.downloadYouTubeVideo).toHaveBeenCalledTimes(2);
+      expect(downloadMocks.addDownload).toHaveBeenCalledTimes(2);
     });
 
     it("does nothing for videos that are already local", () => {
@@ -102,7 +111,7 @@ describe("onDemandYouTube", () => {
 
       queueOnDemandDownload("6SxEj1cujQE");
 
-      expect(downloadMocks.downloadYouTubeVideo).not.toHaveBeenCalled();
+      expect(downloadMocks.addDownload).not.toHaveBeenCalled();
     });
   });
 
@@ -133,7 +142,7 @@ describe("onDemandYouTube", () => {
 
     it("reports queued downloads so the waiting page can show progress", async () => {
       let releaseDownload: ((value?: unknown) => void) | undefined;
-      downloadMocks.downloadYouTubeVideo.mockReturnValue(
+      downloadMocks.addDownload.mockReturnValue(
         new Promise((resolve) => {
           releaseDownload = resolve;
         })
