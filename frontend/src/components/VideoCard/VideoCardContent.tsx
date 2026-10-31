@@ -17,13 +17,21 @@ interface VideoCardContentProps {
     collectionInfo: VideoCardCollectionInfo;
     onAuthorClick: (e: React.MouseEvent) => void;
     isHovered?: boolean;
+    /** Overrides the upload date label; `null` hides the date entirely
+     *  (external results have no upload date until downloaded). */
+    dateLabel?: string | null;
+    /** Overrides the views/watched label; `null` hides it entirely. When
+     *  undefined the library's settings-driven views/watched logic applies. */
+    viewsLabel?: string | null;
 }
 
 export const VideoCardContent: React.FC<VideoCardContentProps> = ({
     video,
     collectionInfo,
     onAuthorClick,
-    isHovered = false
+    isHovered = false,
+    dateLabel,
+    viewsLabel
 }) => {
     const { data: settings } = useSettings();
     const { t } = useLanguage();
@@ -219,10 +227,18 @@ export const VideoCardContent: React.FC<VideoCardContentProps> = ({
                         }}
                     >
                         <Typography variant="caption" color="text.secondary" sx={{ flex: '0 0 auto' }}>
-                            {formatVideoUploadTime(video.date, t)}
+                            {dateLabel === undefined ? formatVideoUploadTime(video.date, t) : dateLabel}
                         </Typography>
                     </Box>
-                    {settings?.showViewCounts === true ? (
+                    {viewsLabel !== undefined ? (
+                        // Explicit label wins (external cards show formatted
+                        // view counts; null hides the slot entirely).
+                        viewsLabel !== null && (
+                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                                {viewsLabel}
+                            </Typography>
+                        )
+                    ) : settings?.showViewCounts === true ? (
                         <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
                             {video.viewCount || 0} {t('views')}
                         </Typography>

@@ -19,6 +19,7 @@ import {
     useTheme
 } from '@mui/material';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { neutral, overlay } from '../../theme/colors';
 import { useAuth } from '../../contexts/AuthContext';
@@ -103,6 +104,7 @@ const UpNextSidebar: React.FC<UpNextSidebarProps> = ({
     onAddToCollection
 }) => {
     const { t } = useLanguage();
+    const navigate = useNavigate();
     const { data: settings } = useSettings();
     const { userRole } = useAuth();
     const isVisitor = userRole === 'visitor';
@@ -138,6 +140,16 @@ const UpNextSidebar: React.FC<UpNextSidebarProps> = ({
                     <Grid key={relatedVideo.id} size={{ xs: 12, md: 6, lg: 12 }}>
                         <Card
                             elevation={0}
+                            // A real anchor, so the browser's link context menu
+                            // (right-click / middle-click "open in new tab")
+                            // works like everywhere else; the SPA handler
+                            // suppresses the default navigation.
+                            component="a"
+                            href={`/video/${relatedVideo.id}`}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                onVideoClick(relatedVideo.id, index);
+                            }}
                             sx={{
                                 display: 'flex',
                                 cursor: 'pointer',
@@ -151,7 +163,6 @@ const UpNextSidebar: React.FC<UpNextSidebarProps> = ({
                                 transition: 'background-color 0.15s ease',
                                 '&:hover': { bgcolor: 'action.hover' }
                             }}
-                            onClick={() => onVideoClick(relatedVideo.id, index)}
                             onMouseEnter={() => setHoveredVideoId(relatedVideo.id)}
                             onMouseLeave={() => setHoveredVideoId(null)}
                         >
@@ -166,7 +177,14 @@ const UpNextSidebar: React.FC<UpNextSidebarProps> = ({
                                     display="block"
                                     color="text.secondary"
                                     title={relatedVideo.author}
-                                    sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                    onClick={(e) => {
+                                        // The channel goes to its channel page
+                                        // (the author page), not the video.
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        navigate(`/author/${encodeURIComponent(relatedVideo.author)}`);
+                                    }}
+                                    sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer', '&:hover': { color: 'primary.main' } }}
                                 >
                                     {relatedVideo.author}
                                 </Typography>

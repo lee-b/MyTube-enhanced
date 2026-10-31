@@ -1,14 +1,19 @@
 import { DeleteOutline, Download, OndemandVideo, PlayArrow, YouTube } from '@mui/icons-material';
-import { Box, Button, CardMedia, Tooltip, Typography, useTheme } from '@mui/material';
-import React from 'react';
+import { Box, Button, Tooltip } from '@mui/material';
+import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router';
 import VideoEntryCard from './VideoEntryCard';
+import { VideoCardContent } from './VideoCard/VideoCardContent';
+import { VideoCardThumbnail } from './VideoCard/VideoCardThumbnail';
 import { useLanguage } from '../contexts/LanguageContext';
-import { VideoSearchResult } from '../types';
+import { useVideo } from '../contexts/VideoContext';
+import { useVideoCardMetadata } from '../hooks/useVideoCardMetadata';
+import { useVideoHoverPreview } from '../hooks/useVideoHoverPreview';
+import { useVideoPrefetch } from '../hooks/useVideoPrefetch';
+import { Video, VideoSearchResult } from '../types';
 import { overlay, platform } from '../theme/colors';
-import { videoEntryTitleSx } from '../utils/videoEntryStyles';
 import { formatDuration, formatViewCount } from '../utils/formatUtils';
-import { authorAvatarFallbackSx } from '../utils/authorAvatarStyles';
-import { THUMBNAIL_PLACEHOLDER_SRC, setThumbnailPlaceholder } from '../utils/thumbnailPlaceholder';
+import { getVideoCardCollectionInfo } from '../utils/videoCardUtils';
 
 interface ExternalVideoCardProps {
     result: VideoSearchResult;
@@ -23,49 +28,17 @@ interface ExternalVideoCardProps {
     onDeleteRequest?: (result: VideoSearchResult) => void;
 }
 
-/** Small circular avatar with the author's initial, matching the library
- * grid's author row. */
-const AuthorAvatar: React.FC<{ author?: string }> = ({ author }) => {
-    const theme = useTheme();
-    return (
-        <Box
-            aria-hidden
-            sx={{
-                width: 24,
-                height: 24,
-                minWidth: 24,
-                fontSize: '0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '50%',
-                flexShrink: 0,
-                ...authorAvatarFallbackSx(theme)
-            }}
-        >
-            {author ? author.charAt(0).toUpperCase() : 'A'}
-        </Box>
-    );
-};
-
-const authorRowSx = {
-    mb: 1,
-    display: 'flex',
-    alignItems: 'center',
-    gap: 0.75,
-    minWidth: 0
-} as const;
-
 /**
- * One external search/channel result rendered through the shared
- * VideoEntryCard shell, so the search listings and the local library grid
- * share one card rendering code path and one modern look.
+ * One external search/channel result — rendered through the *same* card
+ * building blocks as the local library grid (the VideoEntryCard shell plus
+ * the shared thumbnail overlays and author content), so every view of the
+ * site shows one card style with hover preview, view/download/delete, and a
+ * whole-card anchor for right-click "open in new tab".
  *
- * The backend flags results already held by the library, so every card says
- * plainly whether the video is local (with delete) or would arrive on the
- * instance only after a download. Titles and author names are real anchors,
- * so right-click / middle-click "open in new tab" works like on the source
- * site.
+ * Results already in the library resolve to their local copy, which powers
+ * the hover preview, the real player route, and the delete action; remote
+ * results route through the platform takeover target (local player or
+ * on-demand download).
  */
 const ExternalVideoCard: React.FC<ExternalVideoCardProps> = ({
     result,
@@ -75,43 +48,137 @@ const ExternalVideoCard: React.FC<ExternalVideoCardProps> = ({
     onDeleteRequest
 }) => {
     const { t } = useLanguage();
+    const navigate = useNavigate();
+    const { videos } = useVideo();
+
     const isLocal = result.local === true && !!result.localVideoId;
     const canDelete = isLocal && !!onDeleteRequest;
+    // The library copy behind a downloaded result: it powers the hover
+    // preview, the local player route, and prefetching.
+    const localVideo = useMemo(
+        () => (isLocal ? videos.find((video) => video.id === result.localVideoId) : undefined),
+        [isLocal, videos, result.localVideoId]
+    );
+
+    // The shared thumbnail/content hooks expect the library's Video shape;
+    // synthesize it from the result, borrowing paths from the local copy
+    // when the video is already downloaded.
+    const pseudoVideo = useMemo<Video>(() => ({
+        id: result.localVideoId ?? result.id,
+        title: result.title,
+        author: result.author ?? '',
+
+        date: localVideo?.date ?? '',
+        source: result.source ?? 'youtube',
+        sourceUrl: result.sourceUrl ?? '',
+        thumbnailUrl: result.thumbnailUrl,
+        duration: result.duration !== undefined ? String(result.duration) : undefined,
+        viewCount: result.viewCount,
+        videoPath: localVideo?.videoPath,
+        thumbnailPath: localVideo?.thumbnailPath,
+        addedAt: localVideo?.addedAt ?? '',
+        mediaType: localVideo?.mediaType,
+        videoCollections: []
+    } as Video), [result, localVideo]);
+
+    const metadata = useVideoCardMetadata({ video: pseudoVideo });
+    const hoverPreview = useVideoHoverPreview({ videoPath: pseudoVideo.videoPath });
+    const { prefetchVideo } = useVideoPrefetch({ videoId: localVideo ? pseudoVideo.id : '', video: localVideo });
+
+    const collectionInfo = useMemo(
+        () => getVideoCardCollectionInfo(pseudoVideo, [], true),
+        [pseudoVideo]
+    );
+
+    // The whole card activates: downloaded results open the local player,
+    // YouTube results route through the takeover target (local player or
+    // on-demand download), and Bilibili falls back to the source site.
+    const activateHref = isLocal
+        ? `/video/${result.localVideoId}`
+        : isYoutube
+            ? `/from/youtube/video/${result.id}`
+            : (result.sourceUrl || undefined);
+    const handleActivate = (event: React.MouseEvent) => {
+        if (!activateHref) return;
+        // The SPA route wins; the shell keeps the href for the browser's
+        // context menu because we preventDefault ourselves.
+        event.preventDefault();
+        navigate(activateHref);
+    };
+
+    // Clicking the channel goes to its channel page: the local channel
+    // listing through the takeover target (the raw UC... id gets the
+    // channel/ prefix the redirect controller expects); downloaded results
+    // can go straight to the author page instead.
+    const channelTarget = localVideo
+        ? `/author/${encodeURIComponent(result.author ?? '')}`
+        : isYoutube && result.channelId
+            ? `/from/youtube/channel/channel/${result.channelId}`
+            : undefined;
+    const handleAuthorClick = (event: React.MouseEvent) => {
+        // Keep the card's own activation from also firing.
+        event.stopPropagation();
+        event.preventDefault();
+        if (channelTarget) navigate(channelTarget);
+    };
+
+    const handleMouseEnter = () => {
+        hoverPreview.handleMouseEnter();
+        // Prefetch only applies to downloaded results; remote ids have no
+        // library detail to prefetch.
+        if (localVideo) prefetchVideo();
+    };
 
     return (
         <VideoEntryCard
             inLibrary={result.local === true}
             duration={result.duration ? formatDuration(result.duration) : undefined}
+            activateHref={activateHref}
+            onActivate={handleActivate}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={hoverPreview.handleMouseLeave}
             thumbnail={
                 <>
-                    <CardMedia
-                        component="img"
-                        image={result.thumbnailUrl || THUMBNAIL_PLACEHOLDER_SRC}
-                        alt={result.title}
-                        // Bilibili's CDN answers 403 to a hotlinked request from
-                        // any other origin, so the thumbnail only loads when the
-                        // browser sends no Referer. YouTube's CDN does not care
-                        // either way.
-                        referrerPolicy="no-referrer"
-                        sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={(e) => {
-                            setThumbnailPlaceholder(e.currentTarget);
-                        }}
+                    <VideoCardThumbnail
+                        video={pseudoVideo}
+                        thumbnailSrc={metadata.thumbnailSrc}
+                        thumbnailCandidates={metadata.thumbnailCandidates}
+                        thumbnailSrcSet={metadata.thumbnailSrcSet}
+                        thumbnailSizes={metadata.thumbnailSizes}
+                        videoUrl={metadata.videoUrl}
+                        isHovered={hoverPreview.isHovered}
+                        isVideoPlaying={hoverPreview.isVideoPlaying}
+                        setIsVideoPlaying={hoverPreview.setIsVideoPlaying}
+                        videoRef={hoverPreview.videoRef}
+                        collectionInfo={collectionInfo}
+                        isNew={metadata.isNew}
                     />
-                    {/* The platform badge opens the original video so it can be
-                        previewed before downloading. It stays inside the
-                        thumbnail slot: external results have no whole-card
-                        anchor (their click targets are the title, the author,
-                        and the action buttons), so this anchor is not nested
-                        inside another one. */}
+            {/* The platform badge opens the original video so it can be
+                previewed before downloading. It must not be a nested anchor
+                        (the whole card already is one), so it opens the source in a
+                new tab from the click handler. */}
                     <Tooltip title={t('originalLink')}>
                         <Box
-                            component="a"
-                            href={result.sourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            component="span"
+                            role="link"
                             aria-label={t('originalLink')}
-                            sx={{ position: 'absolute', top: 8, right: 8, bgcolor: overlay.black70, borderRadius: '50%', p: 0.5, display: 'flex', zIndex: 4, '&:hover': { bgcolor: overlay.black90 } }}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                event.preventDefault();
+                                if (result.sourceUrl) window.open(result.sourceUrl, '_blank', 'noopener,noreferrer');
+                            }}
+                            sx={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                zIndex: 4,
+                                bgcolor: overlay.black70,
+                                borderRadius: '50%',
+                                p: 0.5,
+                                display: 'flex',
+                                cursor: 'pointer',
+                                '&:hover': { bgcolor: overlay.black90 }
+                            }}
                         >
                             {result.source === 'bilibili'
                                 ? <OndemandVideo sx={{ color: platform.bilibili }} />
@@ -121,51 +188,15 @@ const ExternalVideoCard: React.FC<ExternalVideoCardProps> = ({
                 </>
             }
             content={
-                <>
-                    <Typography gutterBottom variant="subtitle1" component="div" sx={videoEntryTitleSx}>
-                        {/* YouTube results route through the takeover target so a
-                            locally-downloaded video opens in the local player;
-                            non-local ones stream through the instance (or fall
-                            back to youtube.com when no stream is servable). */}
-                        {isYoutube ? (
-                            <a
-                                href={`/from/youtube/video/${result.id}`}
-                                style={{ color: 'inherit', textDecoration: 'none' }}
-                            >
-                                {result.title}
-                            </a>
-                        ) : (
-                            result.title
-                        )}
-                    </Typography>
-                    {isYoutube && result.channelId ? (
-                        <Typography variant="body2" color="text.secondary" sx={authorRowSx}>
-                            <AuthorAvatar author={result.author} />
-                            <a
-                                // The takeover target expects the youtube.com-relative
-                                // channel path form, so the raw UC... id gets the
-                                // channel/ prefix — otherwise the redirect controller
-                                // does not recognize it and bounces to youtube.com.
-                                href={`/from/youtube/channel/channel/${result.channelId}`}
-                                style={{ color: 'inherit', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                            >
-                                {result.author}
-                            </a>
-                        </Typography>
-                    ) : (
-                        <Typography variant="body2" color="text.secondary" sx={authorRowSx}>
-                            <AuthorAvatar author={result.author} />
-                            <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {result.author}
-                            </Box>
-                        </Typography>
-                    )}
-                    {result.viewCount && (
-                        <Typography variant="caption" color="text.secondary">
-                            {formatViewCount(result.viewCount)} {t('views')}
-                        </Typography>
-                    )}
-                </>
+                <VideoCardContent
+                    video={pseudoVideo}
+                    collectionInfo={collectionInfo}
+                    onAuthorClick={handleAuthorClick}
+                    isHovered={hoverPreview.isHovered}
+                    // External results carry no upload date until downloaded.
+                    dateLabel={localVideo?.date ? undefined : null}
+                    viewsLabel={result.viewCount ? `${formatViewCount(result.viewCount)} ${t('views')}` : null}
+                />
             }
             actions={
                 <Box sx={{ p: 2, pt: 0, display: 'flex', gap: 1 }}>

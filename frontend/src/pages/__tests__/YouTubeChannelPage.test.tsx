@@ -18,11 +18,15 @@ vi.mock('../../contexts/DownloadContext', () => ({
 }));
 
 vi.mock('../../contexts/VideoContext', () => ({
-    useVideo: () => ({ deleteVideo, lastSearchEventId: null }),
+    useVideo: () => ({ videos: [], deleteVideo, lastSearchEventId: null }),
 }));
 
 vi.mock('../../contexts/CollectionContext', () => ({
     useCollection: () => ({ collections: [] }),
+}));
+
+vi.mock('../../hooks/useSettings', () => ({
+    useSettings: () => ({ data: undefined }),
 }));
 
 vi.mock('../../contexts/SnackbarContext', () => ({
