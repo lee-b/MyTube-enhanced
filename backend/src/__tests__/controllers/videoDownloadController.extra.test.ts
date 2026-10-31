@@ -165,10 +165,13 @@ describe("channelVideos (YouTube channel listing)", () => {
   it("forwards paging and annotates results with local presence", async () => {
     req.params = { splat: "channel/UCzQUP1qoWDoEbmsQxvdjxgQ" } as any;
     req.query = { limit: "12", offset: "2" } as any;
-    vi.mocked(downloadService.searchYouTubeChannel).mockResolvedValue([
-      { id: "v1", title: "Recent upload" },
-      { id: "v2", title: "Older upload" },
-    ] as any);
+    vi.mocked(downloadService.searchYouTubeChannel).mockResolvedValue({
+      videos: [
+        { id: "v1", title: "Recent upload" },
+        { id: "v2", title: "Older upload" },
+      ],
+      channel: { id: "UCzQUP1qoWDoEbmsQxvdjxgQ", name: "PowerfulJRE" },
+    } as any);
     vi.mocked(storageService.checkVideoDownloadBySourceId)
       .mockReturnValueOnce({ found: true, status: "exists", videoId: "local-1" } as any)
       .mockReturnValueOnce({ found: true, status: "deleted" } as any);
@@ -188,6 +191,9 @@ describe("channelVideos (YouTube channel listing)", () => {
         { id: "v2", title: "Older upload", local: false, localVideoId: undefined },
       ],
       channelPath: "channel/UCzQUP1qoWDoEbmsQxvdjxgQ",
+      // The playlist-level channel identity is passed straight through so
+      // the channel page can render a real name and blurb.
+      channel: { id: "UCzQUP1qoWDoEbmsQxvdjxgQ", name: "PowerfulJRE" },
     });
   });
 });

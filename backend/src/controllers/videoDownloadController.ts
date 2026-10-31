@@ -153,7 +153,7 @@ export const channelVideos = async (
   const limit = getLimitParam(req.query.limit, 24, 50);
   const offset = getPositiveIntegerParam(req.query.offset, 1);
 
-  const results = await downloadService.searchYouTubeChannel(
+  const { videos, channel } = await downloadService.searchYouTubeChannel(
     channelPath,
     limit,
     offset,
@@ -163,7 +163,7 @@ export const channelVideos = async (
   // the external search cards (local copies offer delete; the rest offer
   // download through the takeover targets).
   const role = getVisibilityScopedRole(req);
-  const resultsWithLocal = (results as Array<Record<string, any>>).map(
+  const resultsWithLocal = (videos as Array<Record<string, any>>).map(
     (result) => {
       const check = storageService.checkVideoDownloadBySourceId(
         result.id,
@@ -187,7 +187,7 @@ export const channelVideos = async (
     },
   );
 
-  sendData(res, { results: resultsWithLocal, channelPath });
+  sendData(res, { results: resultsWithLocal, channelPath, channel });
 };
 
 /**

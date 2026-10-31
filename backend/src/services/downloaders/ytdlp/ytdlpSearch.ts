@@ -88,11 +88,20 @@ export async function searchVideos(
  *   "channel/UC...", "c/<name>" or "@<handle>" (as normalized by the
  *   redirect controller).
  */
+export interface YouTubeChannelMetadata {
+  id?: string;
+  name: string;
+  url?: string;
+  subscriberCount?: number;
+  description?: string;
+  thumbnailUrl?: string;
+}
+
 export async function searchChannelVideos(
   channelPath: string,
   limit: number = 24,
   offset: number = 1
-): Promise<any[]> {
+): Promise<{ videos: any[]; channel?: YouTubeChannelMetadata }> {
   logger.info(
     `Fetching YouTube channel videos for "${channelPath}" (limit: ${limit}, offset: ${offset})`
   );
@@ -120,7 +129,7 @@ export async function searchChannelVideos(
   );
 
   if (!result || !result.entries) {
-    return [];
+    return { videos: [], channel: undefined };
   }
 
   const formattedResults = result.entries
@@ -142,10 +151,29 @@ export async function searchChannelVideos(
       source: "youtube",
     }));
 
+  // The flat playlist response carries the channel's identity alongside the
+  // entries, so the channel page can show a real name, subscriber count and
+  // blurb instead of the raw "channel/UC..." path it was reached through.
+  const playlistChannelName: string | undefined =
+    result.channel || result.uploader || undefined;
+  const channel: YouTubeChannelMetadata | undefined = playlistChannelName
+    ? {
+        id: result.channel_id || undefined,
+        name: playlistChannelName,
+        url: result.channel_url || undefined,
+        subscriberCount: result.channel_follower_count || undefined,
+        description: result.description || undefined,
+        thumbnailUrl:
+          result.thumbnails && result.thumbnails.length > 0
+            ? result.thumbnails[0].url
+            : undefined,
+      }
+    : undefined;
+
   logger.info(
     `Found ${formattedResults.length} videos on YouTube channel "${channelPath}"`
   );
 
-  return formattedResults;
+  return { videos: formattedResults, channel };
 }
 

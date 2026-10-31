@@ -25,7 +25,7 @@ export class YtDlpDownloader extends BaseDownloader {
     channelPath: string,
     limit: number = 24,
     offset: number = 1
-  ): Promise<any[]> {
+  ): Promise<{ videos: any[]; channel?: any }> {
     return searchChannelVideos(channelPath, limit, offset);
   }
 

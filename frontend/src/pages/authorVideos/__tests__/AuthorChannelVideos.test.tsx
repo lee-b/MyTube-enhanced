@@ -1,4 +1,5 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AuthorChannelVideos from '../AuthorChannelVideos';
@@ -19,15 +20,28 @@ vi.mock('../../../contexts/CollectionContext', () => ({
     useCollection: () => ({ collections: [] }),
 }));
 
+vi.mock('../../../contexts/SnackbarContext', () => ({
+    useSnackbar: () => ({ showSnackbar: vi.fn() }),
+}));
+
+vi.mock('../../../hooks/useSubscriptions', () => ({
+    useSubscriptions: () => ({ data: [] }),
+    SUBSCRIPTIONS_QUERY_KEY: ['subscriptions'],
+}));
+
 const fetchMock = vi.fn();
 
 const theme = createTheme();
 
+const queryClient = new QueryClient();
+
 const renderSection = (channelUrl?: string | null) =>
     render(
-        <ThemeProvider theme={theme}>
-            <AuthorChannelVideos channelUrl={channelUrl} />
-        </ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+            <ThemeProvider theme={theme}>
+                <AuthorChannelVideos channelUrl={channelUrl} />
+            </ThemeProvider>
+        </QueryClientProvider>
     );
 
 const result = (overrides: Record<string, unknown> = {}) => ({
