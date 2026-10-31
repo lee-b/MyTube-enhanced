@@ -1,12 +1,39 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ExternalSearchSection from '../ExternalSearchSection';
 import { VideoSearchResult } from '../../types';
 
 vi.mock('../../contexts/LanguageContext', () => ({
     useLanguage: () => ({ t: (key: string) => key }),
 }));
+
+const mockNavigate = vi.fn();
+vi.mock('react-router', async () => {
+    const actual = await vi.importActual<typeof import('react-router')>('react-router');
+    return { ...actual, useNavigate: () => mockNavigate };
+});
+
+vi.mock('../../contexts/VideoContext', () => ({
+    useVideo: () => ({ videos: [] }),
+}));
+
+vi.mock('../../hooks/useSettings', () => ({
+    useSettings: () => ({ data: undefined }),
+}));
+
+const queryClient = new QueryClient();
+const windowOpen = vi.fn();
+
+const withProviders = (ui: React.ReactElement) => render(
+    <MemoryRouter>
+        <QueryClientProvider client={queryClient}>
+            <ThemeProvider theme={createTheme()}>{ui}</ThemeProvider>
+        </QueryClientProvider>
+    </MemoryRouter>
+);
 
 const theme = createTheme();
 
@@ -59,7 +86,7 @@ const renderSection = (overrides: Partial<React.ComponentProps<typeof ExternalSe
         ...overrides,
     };
 
-    render(
+    withProviders(
         <ThemeProvider theme={theme}>
             <ExternalSearchSection {...props} />
         </ThemeProvider>
@@ -69,6 +96,12 @@ const renderSection = (overrides: Partial<React.ComponentProps<typeof ExternalSe
 };
 
 describe('ExternalSearchSection', () => {
+    beforeEach(() => {
+        mockNavigate.mockReset();
+        windowOpen.mockReset();
+        vi.stubGlobal('open', windowOpen);
+    });
+
     it('renders the heading and a card per result', () => {
         renderSection();
 
@@ -94,13 +127,13 @@ describe('ExternalSearchSection', () => {
         expect(screen.queryByText('more')).not.toBeInTheDocument();
     });
 
-    it('links the platform badge to the original video in a new tab', () => {
+    it('opens the platform badge in a new tab without leaving the card', () => {
         renderSection();
 
-        const link = screen.getByRole('link', { name: 'originalLink' });
-        expect(link).toHaveAttribute('href', 'https://www.bilibili.com/video/BV1');
-        expect(link).toHaveAttribute('target', '_blank');
-        expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+        // The badge is not a nested anchor (the whole card already is one),
+        // so it opens the original video from the click handler.
+        fireEvent.click(screen.getByRole('link', { name: 'originalLink' }));
+        expect(windowOpen).toHaveBeenCalledWith('https://www.bilibili.com/video/BV1', '_blank', 'noopener,noreferrer');
     });
 
     it('hands the whole result back on download so the caller keeps its source URL', () => {
@@ -146,32 +179,36 @@ describe('ExternalSearchSection', () => {
     });
 
     describe('youtube local-first links', () => {
-        it('links the video title to the takeover target for YouTube results', () => {
+        it('anchors the whole card to the video takeover target for YouTube results', () => {
             renderYoutubeSection();
 
-            const link = screen.getByRole('link', { name: 'A YouTube video' });
-            expect(link).toHaveAttribute('href', '/from/youtube/video/6SxEj1cujQE');
+            // The card's activation area is a real anchor (thumbnail, title,
+            // background — the whole card), like the front page's cards.
+            const anchor = screen.getByRole('link', { name: /A YouTube video/ });
+            expect(anchor).toHaveAttribute('href', '/from/youtube/video/6SxEj1cujQE');
         });
 
-        it('links the author to the channel takeover target when the channel id is known', () => {
+        it('navigates to the channel takeover target when the author is clicked', () => {
             renderYoutubeSection();
 
-            const link = screen.getByRole('link', { name: 'PowerfulJRE' });
-            expect(link).toHaveAttribute('href', '/from/youtube/channel/channel/UCzQUP1qoWDoEbmsQxvdjxgQ');
+            fireEvent.click(screen.getByText('PowerfulJRE'));
+            expect(mockNavigate).toHaveBeenCalledWith('/from/youtube/channel/channel/UCzQUP1qoWDoEbmsQxvdjxgQ');
         });
 
-        it('leaves the author as plain text when no channel id came back', () => {
+        it('leaves the author a no-op when no channel id came back', () => {
             renderYoutubeSection({ results: [{ ...youtubeResult, channelId: undefined }] });
 
-            expect(screen.getByText('PowerfulJRE')).toBeInTheDocument();
-            expect(screen.queryByRole('link', { name: 'PowerfulJRE' })).not.toBeInTheDocument();
+            fireEvent.click(screen.getByText('PowerfulJRE'));
+            expect(mockNavigate).not.toHaveBeenCalled();
         });
 
         it('adds a View button routing to the takeover target next to Download', () => {
             renderYoutubeSection();
 
             // MUI renders the Button as an anchor because it carries a href.
-            const view = screen.getByRole('link', { name: /view/i });
+            // The whole-card activation anchor also matches /view/i (its name
+            // contains the views count), so match the button exactly.
+            const view = screen.getByRole('link', { name: 'view' });
             expect(view).toHaveAttribute('href', '/from/youtube/video/6SxEj1cujQE');
         });
 
@@ -180,7 +217,7 @@ describe('ExternalSearchSection', () => {
             // demanding a manual download first.
             renderYoutubeSection({ results: [{ ...youtubeResult, local: false }] });
 
-            const view = screen.getByRole('link', { name: /view/i });
+            const view = screen.getByRole('link', { name: 'view' });
             expect(view).toBeEnabled();
             expect(view).toHaveAttribute('href', '/from/youtube/video/6SxEj1cujQE');
         });
@@ -255,7 +292,10 @@ describe('ExternalSearchSection', () => {
             renderSection();
 
             expect(screen.queryByRole('button', { name: 'view' })).not.toBeInTheDocument();
-            expect(screen.queryByRole('link', { name: 'A Bilibili video' })).not.toBeInTheDocument();
+            // Without a takeover target, the card falls back to the source
+            // site's watch page.
+            const anchor = screen.getByRole('link', { name: /A Bilibili video/ });
+            expect(anchor).toHaveAttribute('href', 'https://www.bilibili.com/video/BV1');
         });
     });
 });

@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import UpNextSidebar from '../UpNextSidebar';
@@ -58,12 +59,12 @@ describe('UpNextSidebar', () => {
     });
 
     it('should render header', () => {
-        render(<UpNextSidebar {...defaultProps} />);
+        render(<MemoryRouter><UpNextSidebar {...defaultProps} /></MemoryRouter>);
         expect(screen.getByText('upNext')).toBeInTheDocument();
     });
 
     it('should render list of videos', () => {
-        render(<UpNextSidebar {...defaultProps} />);
+        render(<MemoryRouter><UpNextSidebar {...defaultProps} /></MemoryRouter>);
 
         expect(screen.getByText('Video 1')).toBeInTheDocument();
         expect(screen.getByText('Video 2')).toBeInTheDocument();
@@ -71,7 +72,7 @@ describe('UpNextSidebar', () => {
 
     it('should handle video selection', async () => {
         const user = userEvent.setup();
-        render(<UpNextSidebar {...defaultProps} />);
+        render(<MemoryRouter><UpNextSidebar {...defaultProps} /></MemoryRouter>);
 
         // The real component renders Card which is clickable. 
         // We are rendering the real component, so we click the card text or card itself.
@@ -82,5 +83,15 @@ describe('UpNextSidebar', () => {
 
         await user.click(screen.getByText('Video 1'));
         expect(mockOnVideoClick).toHaveBeenCalledWith('1', 0);
+    });
+
+    it('renders each row as a real anchor to the video page', () => {
+        render(<MemoryRouter><UpNextSidebar {...defaultProps} /></MemoryRouter>);
+
+        // Right-click / middle-click "open in new tab" works like on the
+        // front page's cards.
+        const row = screen.getByText('Video 1').closest('a');
+        expect(row).not.toBeNull();
+        expect(row).toHaveAttribute('href', '/video/1');
     });
 });

@@ -1,4 +1,5 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -13,11 +14,15 @@ vi.mock('../../../contexts/DownloadContext', () => ({
 }));
 
 vi.mock('../../../contexts/VideoContext', () => ({
-    useVideo: () => ({ deleteVideo: vi.fn(async () => ({ success: true })) }),
+    useVideo: () => ({ videos: [], deleteVideo: vi.fn(async () => ({ success: true })) }),
 }));
 
 vi.mock('../../../contexts/CollectionContext', () => ({
     useCollection: () => ({ collections: [] }),
+}));
+
+vi.mock('../../../hooks/useSettings', () => ({
+    useSettings: () => ({ data: undefined }),
 }));
 
 vi.mock('../../../contexts/SnackbarContext', () => ({
@@ -38,9 +43,11 @@ const queryClient = new QueryClient();
 const renderSection = (channelUrl?: string | null) =>
     render(
         <QueryClientProvider client={queryClient}>
-            <ThemeProvider theme={theme}>
-                <AuthorChannelVideos channelUrl={channelUrl} />
-            </ThemeProvider>
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <AuthorChannelVideos channelUrl={channelUrl} />
+                </ThemeProvider>
+            </MemoryRouter>
         </QueryClientProvider>
     );
 
