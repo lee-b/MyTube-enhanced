@@ -8,8 +8,6 @@ const mockShowSnackbar = vi.fn();
 const mockApiGet = vi.fn();
 const mockApiPost = vi.fn();
 const mockApiDelete = vi.fn();
-const mockValidateUrlForOpen = vi.fn();
-
 vi.mock("../../contexts/LanguageContext", () => ({
   useLanguage: () => ({
     t: (key: string) => key,
@@ -20,10 +18,6 @@ vi.mock("../../contexts/SnackbarContext", () => ({
   useSnackbar: () => ({
     showSnackbar: mockShowSnackbar,
   }),
-}));
-
-vi.mock("../../utils/urlValidation", () => ({
-  validateUrlForOpen: (...args: any[]) => mockValidateUrlForOpen(...args),
 }));
 
 vi.mock("../../utils/apiClient", () => ({
@@ -82,7 +76,6 @@ describe("useVideoSubscriptions", () => {
     };
     channelUrlError = null;
 
-    mockValidateUrlForOpen.mockImplementation((url: string) => url);
     vi.spyOn(window, "open").mockImplementation(() => null);
 
     mockApiGet.mockImplementation((url: string) => {
@@ -247,7 +240,7 @@ describe("useVideoSubscriptions", () => {
     expect(result.current.isSubscribed).toBe(true);
   });
 
-  it("opens external channel URL when handleAuthorClick has a validated URL", async () => {
+  it("always navigates to the internal author page when handleAuthorClick is used", async () => {
     const { result } = renderHook(
       () => useVideoSubscriptions({ video: baseVideo as any }),
       { wrapper: createWrapper() }
@@ -264,19 +257,17 @@ describe("useVideoSubscriptions", () => {
       clickResult = result.current.handleAuthorClick();
     });
 
-    expect(clickResult).toBeNull();
-    expect(mockValidateUrlForOpen).toHaveBeenCalledWith(
-      "https://www.youtube.com/@author-1"
-    );
-    expect(window.open).toHaveBeenCalledWith(
-      "https://www.youtube.com/@author-1",
-      "_blank",
-      "noopener,noreferrer"
-    );
+    // The author page lists the channel's full catalogue locally, so the
+    // player keeps the user inside the instance instead of opening
+    // youtube.com.
+    expect(clickResult).toEqual({
+      shouldNavigate: true,
+      path: "/author/Author%201",
+    });
+    expect(window.open).not.toHaveBeenCalled();
   });
 
   it("returns internal author navigation path when URL is not valid for open", async () => {
-    mockValidateUrlForOpen.mockReturnValue(null);
 
     const { result } = renderHook(
       () => useVideoSubscriptions({ video: baseVideo as any }),
