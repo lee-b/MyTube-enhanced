@@ -12,6 +12,7 @@ import {
     extractBilibiliVideoId,
     extractBilibiliMid,
     bilibiliPartSourceUrlAliases,
+    extractSourceVideoId,
     extractTwitchChannelLogin,
     isBilibiliSpaceUrl,
     isBilibiliUrl,
@@ -816,13 +817,30 @@ export class SubscriptionService {
         }
       }
 
+      // A head that was downloaded before and deliberately deleted from the
+      // library must not be re-downloaded by the schedule: only the cursor
+      // moves past it, and the user can fetch it back with a manual download.
       // Falls through rather than returning: the Shorts probe below is
       // independent of the main feed, and advanceVideoCursor refreshes
       // lastCheck, so returning here would hide a new Short for a full interval.
+      const headPreviouslyDeleted = Boolean(
+        latestVideoUrl &&
+          latestVideoUrl !== sub.lastVideoLink &&
+          !existingHead &&
+          this.wasSubscriptionVideoDeleted(sub, latestVideoUrl)
+      );
+      if (headPreviouslyDeleted && latestVideoUrl) {
+        logger.info(
+          "Subscription head was downloaded before and deleted from the library; advancing cursor without re-downloading",
+          getSubscriptionLogContext(sub, { latestVideoUrl })
+        );
+        await this.advanceVideoCursor(sub, latestVideoUrl);
+      }
       if (
         latestVideoUrl &&
         latestVideoUrl !== sub.lastVideoLink &&
-        !existingHead
+        !existingHead &&
+        !headPreviouslyDeleted
       ) {
         logger.info(
           "New video found for subscription",
@@ -1052,7 +1070,35 @@ export class SubscriptionService {
             sub.ytdlpConfig
           );
 
-        if (latestShortUrl && latestShortUrl !== sub.lastShortVideoLink) {
+        if (
+          latestShortUrl &&
+          latestShortUrl !== sub.lastShortVideoLink &&
+          this.wasSubscriptionVideoDeleted(sub, latestShortUrl)
+        ) {
+          // Same rule as the main feed: a short the user deleted stays
+          // deleted; the cursor advances so the schedule never re-fetches it.
+          logger.info(
+            "Subscription short was downloaded before and deleted from the library; advancing cursor without re-downloading",
+            getSubscriptionLogContext(sub, { latestShortUrl })
+          );
+          const shortSkipUpdate = await db
+            .update(subscriptions)
+            .set({
+              lastShortVideoLink: latestShortUrl,
+              lastCheck: Date.now(),
+            })
+            .where(eq(subscriptions.id, sub.id))
+            .returning({ id: subscriptions.id });
+          if (shortSkipUpdate.length === 0) {
+            logger.warn(
+              "Subscription was deleted before the deleted-short skip could be recorded",
+              getSubscriptionLogContext(sub, { latestShortUrl })
+            );
+          }
+        } else if (
+          latestShortUrl &&
+          latestShortUrl !== sub.lastShortVideoLink
+        ) {
           logger.info(
             "New short found for subscription",
             getSubscriptionLogContext(sub, { latestShortUrl })
@@ -1263,6 +1309,46 @@ export class SubscriptionService {
     }
 
     return undefined;
+  }
+
+  /**
+   * Whether `videoUrl` was previously downloaded and has since been deleted
+   * from the library: the `videos` row is gone, but the `video_downloads`
+   * tracking row records the deletion (status "deleted").
+   *
+   * Deleting a video must not turn the subscription into a re-download loop —
+   * the user removed it deliberately, so a scheduled check only advances the
+   * cursor past it; bringing it back is a manual download.
+   */
+  private wasSubscriptionVideoDeleted(
+    sub: Subscription,
+    videoUrl: string
+  ): boolean {
+    const { audioOnly } = resolveDownloadAudioMode({
+      userConfig: getEffectiveUserYtDlpConfig(videoUrl, sub.ytdlpConfig),
+    });
+    const mediaType = audioOnly ? "audio" : "video";
+
+    // Same alias set as getExistingSubscriptionVideo so a Bilibili part-one
+    // URL is recognized identically by both guards.
+    for (const candidateUrl of isBilibiliUrl(videoUrl)
+      ? bilibiliPartSourceUrlAliases(videoUrl)
+      : [videoUrl]) {
+      const { id } = extractSourceVideoId(candidateUrl);
+      if (!id) {
+        continue;
+      }
+      const tracked = storageService.checkVideoDownloadBySourceId(
+        id,
+        undefined,
+        mediaType
+      );
+      if (tracked.found && tracked.status === "deleted") {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
