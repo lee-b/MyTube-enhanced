@@ -6,7 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { VideoSearchResult } from '../types';
 import { overlay, platform } from '../theme/colors';
 import { videoEntryTitleSx } from '../utils/videoEntryStyles';
-import { formatDuration } from '../utils/formatUtils';
+import { formatDuration, formatViewCount } from '../utils/formatUtils';
 import { authorAvatarFallbackSx } from '../utils/authorAvatarStyles';
 import { THUMBNAIL_PLACEHOLDER_SRC, setThumbnailPlaceholder } from '../utils/thumbnailPlaceholder';
 
@@ -22,13 +22,6 @@ interface ExternalVideoCardProps {
      * Download for Delete on results the library already holds. */
     onDeleteRequest?: (result: VideoSearchResult) => void;
 }
-
-const formatViewCount = (count?: number) => {
-    if (!count) return '0';
-    if (count < 1000) return count.toString();
-    if (count < 1000000) return `${(count / 1000).toFixed(1)}K`;
-    return `${(count / 1000000).toFixed(1)}M`;
-};
 
 /** Small circular avatar with the author's initial, matching the library
  * grid's author row. */

@@ -247,7 +247,7 @@ export async function searchYouTubeChannel(
   channelPath: string,
   limit?: number,
   offset?: number,
-): Promise<any[]> {
+): Promise<{ videos: any[]; channel?: any }> {
   return YtDlpDownloader.searchChannel(channelPath, limit, offset);
 }
 

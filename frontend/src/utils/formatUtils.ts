@@ -66,6 +66,16 @@ export const formatDuration = (
 };
 
 /**
+ * Format a raw count (views, subscribers) as a compact K/M string
+ */
+export const formatViewCount = (count?: number): string => {
+  if (!count) return "0";
+  if (count < 1000) return count.toString();
+  if (count < 1000000) return `${(count / 1000).toFixed(1)}K`;
+  return `${(count / 1000000).toFixed(1)}M`;
+};
+
+/**
  * Format file size in bytes to human readable string
  */
 export const formatSize = (bytes: string | number | undefined): string => {

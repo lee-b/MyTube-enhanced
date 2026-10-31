@@ -1,5 +1,6 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Route, Routes, MemoryRouter as Router } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ExternalSearchSection from '../../components/ExternalSearchSection';
@@ -24,11 +25,24 @@ vi.mock('../../contexts/CollectionContext', () => ({
     useCollection: () => ({ collections: [] }),
 }));
 
+vi.mock('../../contexts/SnackbarContext', () => ({
+    useSnackbar: () => ({ showSnackbar: vi.fn() }),
+}));
+
+const subscriptions: Array<{ id: string; author?: string; authorUrl?: string; platform?: string }> = [];
+vi.mock('../../hooks/useSubscriptions', () => ({
+    useSubscriptions: () => ({ data: subscriptions }),
+    SUBSCRIPTIONS_QUERY_KEY: ['subscriptions'],
+}));
+
+const queryClient = new QueryClient();
+
 const theme = createTheme();
 
 const fetchMock = vi.fn();
 
 const renderPage = () => render(
+    <QueryClientProvider client={queryClient}>
     <ThemeProvider theme={theme}>
         <Router initialEntries={['/channel/youtube/channel%2FUCzQUP1qoWDoEbmsQxvdjxgQ']}>
             <Routes>
@@ -36,6 +50,7 @@ const renderPage = () => render(
             </Routes>
         </Router>
     </ThemeProvider>
+    </QueryClientProvider>
 );
 
 const pageResult = (overrides: Partial<React.ComponentProps<typeof ExternalSearchSection>['results'][number]> = {}) => ({
@@ -123,7 +138,7 @@ describe('YouTubeChannelPage', () => {
         expect(screen.getByText('youtubeChannelLoadFailed')).toBeInTheDocument();
     });
 
-    it('filters the listing down to downloaded videos with the Downloaded toggle', async () => {
+    it('filters the listing down to downloaded videos with the Downloaded-only checkbox', async () => {
         fetchMock.mockResolvedValue({
             ok: true,
             json: async () => ({
@@ -135,13 +150,13 @@ describe('YouTubeChannelPage', () => {
         renderPage();
         expect(await screen.findByText('Remote upload')).toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', { name: 'channelFilterDownloaded' }));
+        fireEvent.click(screen.getByRole('checkbox', { name: 'channelFilterDownloaded' }));
 
         expect(screen.queryByText('Remote upload')).not.toBeInTheDocument();
         expect(screen.getByText('Local copy')).toBeInTheDocument();
 
-        // Back to All restores the full catalogue.
-        fireEvent.click(screen.getByRole('button', { name: 'channelFilterAll' }));
+        // Unchecking the box restores the full catalogue.
+        fireEvent.click(screen.getByRole('checkbox', { name: 'channelFilterDownloaded' }));
         expect(screen.getByText('Remote upload')).toBeInTheDocument();
         expect(screen.getByText('Local copy')).toBeInTheDocument();
     });
@@ -155,8 +170,46 @@ describe('YouTubeChannelPage', () => {
         renderPage();
         await screen.findByText('A recent upload');
 
-        fireEvent.click(screen.getByRole('button', { name: 'channelFilterDownloaded' }));
+        fireEvent.click(screen.getByRole('checkbox', { name: 'channelFilterDownloaded' }));
 
         expect(await screen.findByText('noDownloadedChannelVideos')).toBeInTheDocument();
+    });
+
+    it('presents the channel with its name, subscriber count and blurb', async () => {
+        fetchMock.mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                results: [pageResult()],
+                channelPath: 'channel/UCzQUP1qoWDoEbmsQxvdjxgQ',
+                channel: {
+                    id: 'UCzQUP1qoWDoEbmsQxvdjxgQ',
+                    name: 'PowerfulJRE',
+                    subscriberCount: 2850000,
+                    description: 'The podcast of our time.',
+                },
+            }),
+        });
+
+        renderPage();
+
+        // The real channel name replaces the raw path/first-entry fallback.
+        expect(await screen.findByRole('heading', { name: 'PowerfulJRE' })).toBeInTheDocument();
+        expect(screen.getByText('2.9M channelSubscribers')).toBeInTheDocument();
+        expect(screen.getByText('The podcast of our time.')).toBeInTheDocument();
+    });
+
+    it('offers a Subscribe button that opens the subscription modal', async () => {
+        fetchMock.mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                results: [pageResult()],
+                channelPath: 'channel/UCzQUP1qoWDoEbmsQxvdjxgQ',
+            }),
+        });
+
+        renderPage();
+        fireEvent.click(await screen.findByRole('button', { name: 'subscribe' }));
+
+        expect(await screen.findByRole('dialog')).toBeInTheDocument();
     });
 });

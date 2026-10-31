@@ -123,7 +123,7 @@ Total keys: 1421
 | `noYouTubeResults` |
 | `youtubeChannelUploads` |
 | `youtubeChannelLoadFailed` |
-| `channelFilterAll` |
+| `channelSubscribers` |
 | `channelFilterDownloaded` |
 | `noDownloadedChannelVideos` |
 | `latestDownloadedVideos` |
