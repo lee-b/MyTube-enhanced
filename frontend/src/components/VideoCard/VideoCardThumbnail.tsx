@@ -1,10 +1,10 @@
 import { Folder, MusicNote } from '@mui/icons-material';
-import { Box, CardMedia, Chip, Skeleton, useMediaQuery, useTheme } from '@mui/material';
+import { Box, CardMedia, Chip, Skeleton, useTheme } from '@mui/material';
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { mask, neutral, overlay, shadow } from '../../theme/colors';
 import { Video } from '../../types';
-import { formatDuration, parseDuration } from '../../utils/formatUtils';
+import { parseDuration } from '../../utils/formatUtils';
 import { THUMBNAIL_PLACEHOLDER_SRC, handleThumbnailError } from '../../utils/thumbnailPlaceholder';
 import { VideoCardCollectionInfo } from '../../utils/videoCardUtils';
 
@@ -52,18 +52,13 @@ const VideoCardThumbnailView: React.FC<VideoCardThumbnailProps> = ({
 }) => {
     const { t } = useLanguage();
     const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [isImageLoaded, setIsImageLoaded] = useState(false);
 
+    // The 16:9 container this overlay renders into is provided by the shared
+    // VideoEntryCard shell; every child here is absolutely positioned within
+    // it.
     return (
-        <Box
-            sx={{
-                position: 'relative',
-                paddingTop: '56.25%', // 16:9 aspect ratio
-                borderRadius: isMobile ? 0 : 2,
-                overflow: 'hidden'
-            }}
-        >
+        <>
             {/* Video Element (only shown on hover) */}
             {isHovered && videoUrl && (
                 <Box
@@ -167,22 +162,6 @@ const VideoCardThumbnailView: React.FC<VideoCardThumbnailProps> = ({
                 />
             )}
 
-            {video.duration && (
-                <Chip
-                    label={formatDuration(video.duration)}
-                    size="small"
-                    sx={{
-                        position: 'absolute',
-                        bottom: 8,
-                        right: 8,
-                        height: 20,
-                        fontSize: '0.75rem',
-                        bgcolor: overlay.black60,
-                        color: neutral.white,
-                        zIndex: 3
-                    }}
-                />
-            )}
 
             {isNew && (
                 <Box
@@ -311,7 +290,7 @@ const VideoCardThumbnailView: React.FC<VideoCardThumbnailProps> = ({
                     </Box>
                 );
             })()}
-        </Box>
+        </>
     );
 };
 

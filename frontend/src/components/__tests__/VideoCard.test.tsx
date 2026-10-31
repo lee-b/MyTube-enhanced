@@ -170,6 +170,34 @@ describe('VideoCard', () => {
         expect(mockNavigate).toHaveBeenCalledWith('/video/123');
     });
 
+    it('renders the whole card as a real anchor to the video page', () => {
+        const theme = createTheme();
+        render(
+            <ThemeProvider theme={theme}>
+                <VideoCard video={mockVideo} />
+            </ThemeProvider>
+        );
+
+        // The activation area is an anchor, so the browser's native link
+        // context menu (right-click / middle-click "open in new tab") works
+        // anywhere on the card.
+        const activation = screen.getByRole('link').closest('a');
+        expect(activation).not.toBeNull();
+        expect(activation).toHaveAttribute('href', '/video/123');
+    });
+
+    it('anchors collection-first cards to their collection page', () => {
+        const theme = createTheme();
+        render(
+            <ThemeProvider theme={theme}>
+                <VideoCard video={mockVideo} collections={[{ id: 'col-1', name: 'Col', videos: ['123'] } as any]} />
+            </ThemeProvider>
+        );
+
+        const activation = screen.getByRole('link').closest('a');
+        expect(activation).toHaveAttribute('href', '/collection/col-1');
+    });
+
     it('navigates to author page on author click', () => {
         const theme = createTheme();
         render(
