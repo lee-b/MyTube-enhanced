@@ -1,5 +1,6 @@
 import { CreateNewFolder, Delete, LocalOffer, ViewSidebar } from '@mui/icons-material';
 import { Avatar, Box, Button, IconButton, Tooltip, Typography } from '@mui/material';
+import { type ReactNode } from 'react';
 
 import FavoriteToggle from '../../components/FavoriteToggle';
 import SortControl from '../../components/SortControl';
@@ -28,6 +29,9 @@ interface AuthorVideosHeaderProps {
     favoriteLabel: string;
     unfavoriteLabel: string;
     favoriteDisabled: boolean;
+    /** Optional subscribe/unsubscribe control for the author's channel,
+        rendered just before the sort control in the actions toolbar. */
+    subscribeButton?: ReactNode;
 }
 
 const AuthorVideosHeader: React.FC<AuthorVideosHeaderProps> = ({
@@ -53,6 +57,7 @@ const AuthorVideosHeader: React.FC<AuthorVideosHeaderProps> = ({
     favoriteLabel,
     unfavoriteLabel,
     favoriteDisabled,
+    subscribeButton,
 }) => {
     const initial = authorDisplayName ? authorDisplayName.charAt(0).toUpperCase() : 'A';
     const displayName = authorDisplayName || unknownAuthorLabel;
@@ -173,6 +178,7 @@ const AuthorVideosHeader: React.FC<AuthorVideosHeaderProps> = ({
                         </>
                     )}
                 </Box>
+                {subscribeButton}
                 {hasVideos && (
                     <SortControl
                         sortOption={sortOption}
