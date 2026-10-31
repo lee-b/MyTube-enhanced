@@ -1,10 +1,11 @@
-import { DeleteOutline, Download, OndemandVideo, PlayArrow, YouTube } from '@mui/icons-material';
-import { Box, Button, Tooltip } from '@mui/material';
+import { OndemandVideo, YouTube } from '@mui/icons-material';
+import { Box, Tooltip } from '@mui/material';
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import VideoEntryCard from './VideoEntryCard';
 import { VideoCardContent } from './VideoCard/VideoCardContent';
 import { VideoCardThumbnail } from './VideoCard/VideoCardThumbnail';
+import { VideoEntryActions } from './VideoCard/VideoEntryActions';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useVideo } from '../contexts/VideoContext';
 import { useVideoCardMetadata } from '../hooks/useVideoCardMetadata';
@@ -199,50 +200,21 @@ const ExternalVideoCard: React.FC<ExternalVideoCardProps> = ({
                 />
             }
             actions={
-                <Box sx={{ p: 2, pt: 0, display: 'flex', gap: 1 }}>
-                    {/* Only YouTube results have a takeover target; Bilibili keeps
-                        download as the sole action. The backend serves the local
-                        player when the video is in the library and streams it
-                        through the instance when it is not, so View is always
-                        clickable for YouTube results. */}
-                    {isYoutube && (
-                        <Button
-                            variant="outlined"
-                            startIcon={<PlayArrow />}
-                            component="a"
-                            href={`/from/youtube/video/${result.id}`}
-                        >
-                            {t('view')}
-                        </Button>
-                    )}
-                    {canDelete ? (
-                        <Button
-                            fullWidth
-                            variant="outlined"
-                            color="error"
-                            startIcon={<DeleteOutline />}
-                            onClick={() => onDeleteRequest?.(result)}
-                        >
-                            {t('delete')}
-                        </Button>
-                    ) : (
-                        <Button
-                            fullWidth
-                            variant="contained"
-                            startIcon={<Download />}
-                            onClick={() => onDownload(result)}
-                            // Per result rather than one shared id: two downloads
-                            // can legitimately be queued at once, and a single id
-                            // would drop the first card's spinner and let the same
-                            // result be submitted twice.
-                            loading={downloading}
-                            disabled={downloading}
-                            loadingPosition="start"
-                        >
-                            {t('download')}
-                        </Button>
-                    )}
-                </Box>
+                <VideoEntryActions
+                    viewHref={
+                        // Downloaded results open the local player; YouTube
+                        // results the takeover target (local player or
+                        // on-demand download); Bilibili stays download-only.
+                        isLocal
+                            ? `/video/${result.localVideoId}`
+                            : isYoutube
+                                ? `/from/youtube/video/${result.id}`
+                                : ''
+                    }
+                    onDownload={!canDelete ? () => onDownload(result) : undefined}
+                    downloading={downloading}
+                    onDelete={canDelete ? () => onDeleteRequest?.(result) : undefined}
+                />
             }
         />
     );
