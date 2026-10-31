@@ -26,6 +26,7 @@ vi.mock('../../hooks/useSettings', () => ({
 
 const queryClient = new QueryClient();
 const windowOpen = vi.fn();
+const locationAssign = vi.fn();
 
 const withProviders = (ui: React.ReactElement) => render(
     <MemoryRouter>
@@ -99,7 +100,21 @@ describe('ExternalSearchSection', () => {
     beforeEach(() => {
         mockNavigate.mockReset();
         windowOpen.mockReset();
+        locationAssign.mockReset();
         vi.stubGlobal('open', windowOpen);
+        const originalLocation = window.location;
+        Object.defineProperty(window, 'location', {
+            configurable: true,
+            value: { ...originalLocation, assign: locationAssign },
+            writable: true,
+        });
+        return () => {
+            Object.defineProperty(window, 'location', {
+                configurable: true,
+                value: originalLocation,
+                writable: true,
+            });
+        };
     });
 
     it('renders the heading and a card per result', () => {
@@ -188,11 +203,23 @@ describe('ExternalSearchSection', () => {
             expect(anchor).toHaveAttribute('href', '/from/youtube/video/6SxEj1cujQE');
         });
 
-        it('navigates to the channel takeover target when the author is clicked', () => {
+        it('hands the author click to the browser for the takeover target', () => {
             renderYoutubeSection();
 
             fireEvent.click(screen.getByText('PowerfulJRE'));
-            expect(mockNavigate).toHaveBeenCalledWith('/from/youtube/channel/channel/UCzQUP1qoWDoEbmsQxvdjxgQ');
+            // Takeover targets resolve server-side (no SPA route exists),
+            // so the click must be a full navigation, not SPA routing.
+            expect(locationAssign).toHaveBeenCalledWith('/from/youtube/channel/channel/UCzQUP1qoWDoEbmsQxvdjxgQ');
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
+        it('lets the browser follow the card anchor to the takeover target', () => {
+            renderYoutubeSection();
+
+            // SPA navigation to a takeover URL renders a blank page, so the
+            // card activation must leave the anchor's default in place.
+            fireEvent.click(screen.getByRole('link', { name: /A YouTube video/ }));
+            expect(mockNavigate).not.toHaveBeenCalled();
         });
 
         it('leaves the author a no-op when no channel id came back', () => {

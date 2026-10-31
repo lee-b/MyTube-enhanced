@@ -99,13 +99,19 @@ const ExternalVideoCard: React.FC<ExternalVideoCardProps> = ({
         : isYoutube
             ? `/from/youtube/video/${result.id}`
             : (result.sourceUrl || undefined);
-    const handleActivate = (event: React.MouseEvent) => {
-        if (!activateHref) return;
-        // The SPA route wins; the shell keeps the href for the browser's
-        // context menu because we preventDefault ourselves.
-        event.preventDefault();
-        navigate(activateHref);
-    };
+    // The shell suppresses the anchor's default navigation whenever an SPA
+    // handler is present, so takeover targets (/from/<platform>/...) must
+    // have none: they resolve server-side only (the backend 302s to the
+    // local player, or queues an on-demand download and lands on the caching
+    // waiting page), and no SPA route exists for them — SPA-navigating to
+    // one renders a blank page. Omitting the handler lets the browser follow
+    // the anchor while the href stays available for the context menu.
+    const handleActivate = activateHref && !activateHref.startsWith('/from/')
+        ? (event: React.MouseEvent) => {
+              event.preventDefault();
+              navigate(activateHref);
+          }
+        : undefined;
 
     // Clicking the channel goes to its channel page: the local channel
     // listing through the takeover target (the raw UC... id gets the
@@ -120,7 +126,15 @@ const ExternalVideoCard: React.FC<ExternalVideoCardProps> = ({
         // Keep the card's own activation from also firing.
         event.stopPropagation();
         event.preventDefault();
-        if (channelTarget) navigate(channelTarget);
+        if (!channelTarget) return;
+        // Takeover targets resolve server-side only (302 to the author page
+        // or the local channel page); SPA-navigating to one renders a blank
+        // page, so hand the navigation to the browser with a full page load.
+        if (channelTarget.startsWith('/from/')) {
+            window.location.assign(channelTarget);
+            return;
+        }
+        navigate(channelTarget);
     };
 
     const handleMouseEnter = () => {
