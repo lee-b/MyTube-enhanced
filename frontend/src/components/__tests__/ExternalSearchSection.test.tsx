@@ -185,6 +185,21 @@ describe('ExternalSearchSection', () => {
             expect(view).toHaveAttribute('href', '/from/youtube/video/6SxEj1cujQE');
         });
 
+        it('badges results that are already in the library', () => {
+            renderYoutubeSection();
+            expect(screen.getByText('inLibrary')).toBeInTheDocument();
+        });
+
+        it('omits the library badge for results that are not local', () => {
+            renderYoutubeSection({ results: [{ ...youtubeResult, local: false }] });
+            expect(screen.queryByText('inLibrary')).not.toBeInTheDocument();
+        });
+
+        it('omits the library badge when the local flag is absent', () => {
+            renderYoutubeSection({ results: [{ ...youtubeResult, local: undefined }] });
+            expect(screen.queryByText('inLibrary')).not.toBeInTheDocument();
+        });
+
         it('swaps Download for Delete on results that are already in the library', () => {
             const props = renderYoutubeSection({
                 results: [{ ...youtubeResult, local: true, localVideoId: 'local-1' }],

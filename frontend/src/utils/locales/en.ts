@@ -54,6 +54,8 @@ export const en = {
   noYouTubeResults: "No YouTube results found",
   youtubeChannelUploads: "Videos on this channel",
   youtubeChannelLoadFailed: "Could not load this channel's videos. The channel page on youtube.com is the fallback.",
+  inLibrary: "In library",
+  channelVideosHeading: "All videos from this channel",
   fromBilibili: "From Bilibili",
   loadingBilibiliResults: "Loading Bilibili results...",
   noBilibiliResults: "No Bilibili results found",

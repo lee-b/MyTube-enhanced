@@ -11,14 +11,14 @@ UPDATE_KEY_LIST=1 npx vitest run src/utils/locales/__tests__/localeParity.test.t
 
 This list is intentionally unnumbered. When new keys are inserted, only the local section order changes.
 
-Total keys: 1415
+Total keys: 1417
 
 ## Summary
 
 | Section | Keys | First Key | Last Key |
 | --- | ---: | --- | --- |
 | Header | 11 | `myTube` | `instruction` |
-| Home | 43 | `pasteUrl` | `views` |
+| Home | 45 | `pasteUrl` | `views` |
 | Ungrouped | 1 | `showWatched` | `showWatched` |
 | Settings | 4 | `general` | `downloadSettings` |
 | Settings Categories | 247 | `interfaceDisplay` | `enterNewTagName` |
@@ -123,6 +123,8 @@ Total keys: 1415
 | `noYouTubeResults` |
 | `youtubeChannelUploads` |
 | `youtubeChannelLoadFailed` |
+| `inLibrary` |
+| `channelVideosHeading` |
 | `fromBilibili` |
 | `loadingBilibiliResults` |
 | `noBilibiliResults` |

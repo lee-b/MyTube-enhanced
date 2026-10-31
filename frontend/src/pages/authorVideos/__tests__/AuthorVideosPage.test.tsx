@@ -169,6 +169,14 @@ vi.mock('../AuthorVideosContent', () => ({
     ),
 }));
 
+vi.mock('../AuthorChannelVideos', () => ({
+    default: (props: { channelUrl: unknown; [key: string]: unknown }) => (
+        <div data-testid="author-channel-videos">
+            <span data-testid="channel-url">{String(props.channelUrl)}</span>
+        </div>
+    ),
+}));
+
 vi.mock('../../../components/ConfirmationModal', () => ({
     default: ({ isOpen, onClose, onConfirm, title, message, confirmText, isDanger }: { isOpen: unknown; onClose: MouseEventHandler; onConfirm: MouseEventHandler; title: ReactNode; message: ReactNode; confirmText: ReactNode; isDanger: unknown; [key: string]: unknown }) =>
         isOpen ? (
@@ -203,7 +211,7 @@ describe('AuthorVideosPage', () => {
         vi.clearAllMocks();
         mockLoading = false;
         mockVideos = [
-            { id: 'v1', title: 'Video 1', author: 'TestAuthor', tags: ['tag1'], authorAvatarPath: '/avatar.jpg' },
+            { id: 'v1', title: 'Video 1', author: 'TestAuthor', tags: ['tag1'], authorAvatarPath: '/avatar.jpg', channelUrl: 'https://www.youtube.com/channel/UCtest' },
             { id: 'v2', title: 'Video 2', author: 'TestAuthor', tags: ['tag2'] },
         ];
         mockAuthorVideos = [...mockVideos];
@@ -221,6 +229,24 @@ describe('AuthorVideosPage', () => {
             </ThemeProvider>
         );
     };
+
+    // -------------------------------------------------------
+    // 0. Channel videos listing wiring
+    // -------------------------------------------------------
+    describe('channel videos listing', () => {
+        it('passes the channel URL of the author to the channel listing', () => {
+            renderPage();
+            expect(screen.getByTestId('author-channel-videos')).toBeInTheDocument();
+            expect(screen.getByTestId('channel-url').textContent).toBe('https://www.youtube.com/channel/UCtest');
+        });
+
+        it('omits the channel listing when no video carries a channel URL', () => {
+            mockVideos = [{ id: 'v1', title: 'Video 1', author: 'TestAuthor', tags: ['tag1'] }];
+            mockAuthorVideos = [...mockVideos];
+            renderPage();
+            expect(screen.getByTestId('channel-url').textContent).toBe('null');
+        });
+    });
 
     // -------------------------------------------------------
     // 1. Loading state

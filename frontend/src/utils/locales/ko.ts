@@ -78,6 +78,8 @@ export const ko = {
   noYouTubeResults: "YouTube 결과 없음",
     youtubeChannelUploads: "이 채널의 동영상",
   youtubeChannelLoadFailed: "이 채널의 동영상을 불러오지 못했습니다. youtube.com의 채널 페이지가 대안입니다.",
+  inLibrary: "라이브러리에 있음",
+  channelVideosHeading: "이 채널의 모든 동영상",
   fromBilibili: "Bilibili에서",
   loadingBilibiliResults: "Bilibili 결과 로드 중...",
   noBilibiliResults: "Bilibili 결과 없음",
