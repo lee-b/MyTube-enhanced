@@ -13,6 +13,7 @@ import { useCloudStorageUrl } from '../../hooks/useCloudStorageUrl';
 import { useSettings } from '../../hooks/useSettings';
 import { useVideoSort } from '../../hooks/useVideoSort';
 import { useFavoriteAuthors } from '../../hooks/useFavoriteAuthors';
+import { useSubscriptions } from '../../hooks/useSubscriptions';
 import AuthorVideosContent from './AuthorVideosContent';
 import AuthorChannelVideos from './AuthorChannelVideos';
 import AuthorVideosHeader from './AuthorVideosHeader';
@@ -26,6 +27,12 @@ import { sortVideos } from '../../utils/videoSort';
 // every downloaded video appears there with its "in library" badge, so a
 // complete local list would just duplicate it.
 const LATEST_DOWNLOAD_LIMIT = 8;
+
+interface SubscriptionRecord {
+    id: string;
+    author?: string;
+    authorUrl?: string;
+}
 import { viewportHeight } from '../../utils/viewportUnits';
 
 const AuthorVideosPage: React.FC = () => {
@@ -44,17 +51,27 @@ const AuthorVideosPage: React.FC = () => {
     } = useFavoriteAuthors();
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    // The channel listing is only offered when the local videos carry a
-    // channel URL the listing endpoint can serve. Resolve it from the raw
-    // videos first so the identity filter below can match by channel, not
-    // just by the author display name.
+    const { data: subscriptions = [] } = useSubscriptions<SubscriptionRecord[]>();
+    // The channel listing is offered whenever the author's channel URL can be
+    // resolved: prefer the URL recorded on the local videos, but keep the
+    // listing (and its subscribe controls) available for subscribed authors
+    // even after every one of their local videos has been deleted. Navigating
+    // to a channel directly (/channel/youtube/:path) never needs local videos
+    // at all.
     const channelUrl = useMemo(() => {
-        return (
-            videos
-                .filter((video) => video.author === authorName)
-                .find((video) => video.channelUrl)?.channelUrl ?? null
+        const fromVideos = videos
+            .filter((video) => video.author === authorName)
+            .find((video) => video.channelUrl)?.channelUrl;
+        if (fromVideos) return fromVideos;
+        const matchedSubscription = subscriptions.find(
+            (subscription) =>
+                typeof subscription.authorUrl === 'string' &&
+                subscription.authorUrl.length > 0 &&
+                typeof authorName === 'string' &&
+                subscription.author?.toLowerCase() === authorName.toLowerCase()
         );
-    }, [videos, authorName]);
+        return matchedSubscription?.authorUrl ?? null;
+    }, [videos, subscriptions, authorName]);
     const authorVideos = useMemo(
         () => getAuthorVideos(videos, authorName, channelUrl),
         [videos, authorName, channelUrl]
