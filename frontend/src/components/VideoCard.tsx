@@ -1,10 +1,9 @@
 import {
-    Card,
-    CardActionArea,
     useMediaQuery,
     useTheme
 } from '@mui/material';
 import React from 'react';
+import VideoEntryCard from './VideoEntryCard';
 import { useVideoTags } from '../contexts/VideoContext';
 import { usePlayerSelection } from '../hooks/usePlayerSelection';
 import { useVideoCardActions } from '../hooks/useVideoCardActions';
@@ -13,6 +12,7 @@ import { useVideoCardNavigation } from '../hooks/useVideoCardNavigation';
 import { useVideoHoverPreview } from '../hooks/useVideoHoverPreview';
 import { useVideoPrefetch } from '../hooks/useVideoPrefetch';
 import { Collection, Video } from '../types';
+import { formatDuration } from '../utils/formatUtils';
 import { getVideoCardCollectionInfo } from '../utils/videoCardUtils';
 import { VideoCardActions } from './VideoCard/VideoCardActions';
 import { VideoCardContent } from './VideoCard/VideoCardContent';
@@ -89,52 +89,23 @@ const VideoCardBase: React.FC<VideoCardProps> = ({
         prefetchVideo();
     };
 
+    // The whole card activates through a real anchor, so the browser's native
+    // link context menu (right-click / middle-click "open in new tab") works
+    // anywhere on the card, like it does on youtube.com. Collection-first
+    // cards land on their collection page; everything else opens the player.
+    const activateHref = collectionInfo.isFirstInAnyCollection && collectionInfo.firstCollectionId
+        ? `/collection/${collectionInfo.firstCollectionId}`
+        : `/video/${video.id}`;
+
     return (
-        <Card
-            elevation={0}
-            ref={cardRef}
+        <VideoEntryCard
+            cardRef={cardRef}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={hoverPreview.handleMouseLeave}
-            sx={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                position: 'relative',
-                bgcolor: 'transparent',
-                backgroundImage: 'none',
-                boxShadow: 'none',
-                borderRadius: 2,
-                overflow: 'visible',
-                transition: 'background-color 0.15s ease, color 0.3s, border-color 0.3s',
-                ...(!isMobile && {
-                    '&:hover': {
-                        bgcolor: 'action.hover',
-                        boxShadow: 'none'
-                    }
-                }),
-                border: collectionInfo.isFirstInAnyCollection
-                    ? `1px solid ${theme.palette.primary.main}`
-                    : 'none'
-            }}
-        >
-            <CardActionArea
-                onClick={navigation.handleVideoNavigation}
-                sx={{
-                    flexGrow: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'stretch',
-                    borderRadius: 2,
-                    color: 'inherit',
-                    '& .MuiCardActionArea-focusHighlight': {
-                        bgcolor: 'transparent'
-                    },
-                    '&.Mui-focusVisible': {
-                        outline: `2px solid ${theme.palette.primary.main}`,
-                        outlineOffset: 2
-                    }
-                }}
-            >
+            activateHref={activateHref}
+            onActivate={navigation.handleVideoNavigation}
+            duration={video.duration ? formatDuration(video.duration) : undefined}
+            thumbnail={
                 <VideoCardThumbnail
                     video={video}
                     thumbnailSrc={metadata.thumbnailSrc}
@@ -155,33 +126,40 @@ const VideoCardBase: React.FC<VideoCardProps> = ({
                     selectedTags={selectedTags}
                     onTagClick={onTagClick ?? handleTagToggle}
                 />
-
+            }
+            content={
                 <VideoCardContent
                     video={video}
                     collectionInfo={collectionInfo}
                     onAuthorClick={navigation.handleAuthorClick}
                     isHovered={hoverPreview.isHovered}
                 />
-            </CardActionArea>
-
-            <VideoCardActions
-                video={video}
-                playerMenuAnchor={playerSelection.playerMenuAnchor}
-                setPlayerMenuAnchor={playerSelection.setPlayerMenuAnchor}
-                handlePlayerSelect={playerSelection.handlePlayerSelect}
-                getAvailablePlayers={playerSelection.getAvailablePlayers}
-                showDeleteModal={actions.showDeleteModal}
-                setShowDeleteModal={actions.setShowDeleteModal}
-                confirmDelete={actions.confirmDelete}
-                isDeleting={actions.isDeleting}
-                handleToggleVisibility={actions.handleToggleVisibility}
-                isTogglingVisibility={actions.isTogglingVisibility}
-                canDelete={actions.canDelete}
-                isMobile={isMobile}
-                isTouch={isTouch}
-                isHovered={hoverPreview.isHovered}
-            />
-        </Card>
+            }
+            actions={
+                <VideoCardActions
+                    video={video}
+                    playerMenuAnchor={playerSelection.playerMenuAnchor}
+                    setPlayerMenuAnchor={playerSelection.setPlayerMenuAnchor}
+                    handlePlayerSelect={playerSelection.handlePlayerSelect}
+                    getAvailablePlayers={playerSelection.getAvailablePlayers}
+                    showDeleteModal={actions.showDeleteModal}
+                    setShowDeleteModal={actions.setShowDeleteModal}
+                    confirmDelete={actions.confirmDelete}
+                    isDeleting={actions.isDeleting}
+                    handleToggleVisibility={actions.handleToggleVisibility}
+                    isTogglingVisibility={actions.isTogglingVisibility}
+                    canDelete={actions.canDelete}
+                    isMobile={isMobile}
+                    isTouch={isTouch}
+                    isHovered={hoverPreview.isHovered}
+                />
+            }
+            sx={{
+                border: collectionInfo.isFirstInAnyCollection
+                    ? `1px solid ${theme.palette.primary.main}`
+                    : 'none'
+            }}
+        />
     );
 };
 

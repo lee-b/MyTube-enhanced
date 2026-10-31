@@ -40,10 +40,13 @@ describe('useVideoCardNavigation', () => {
             collectionInfo: { isFirstInAnyCollection: false, firstCollectionId: null, videoCollections: [], firstInCollectionNames: [] }
         }));
 
-        const mockEvent = { stopPropagation: vi.fn() };
+        const mockEvent = { stopPropagation: vi.fn(), preventDefault: vi.fn() };
         result.current.handleAuthorClick(mockEvent as any);
 
         expect(mockEvent.stopPropagation).toHaveBeenCalled();
+        // The card's activation area is an anchor; the author click suppresses
+        // its default navigation to the video page.
+        expect(mockEvent.preventDefault).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith('/author/Test%20Author');
     });
 

@@ -1,24 +1,10 @@
-import { DeleteOutline, Download, OndemandVideo, PlayArrow, YouTube } from '@mui/icons-material';
-import {
-    Box,
-    Button,
-    Card,
-    CardActions,
-    CardContent,
-    CardMedia,
-    Chip,
-    CircularProgress,
-    Grid,
-    Tooltip,
-    Typography
-} from '@mui/material';
+import { Box, Button, CircularProgress, Grid, Typography } from '@mui/material';
 import React from 'react';
 import ConfirmationModal from './ConfirmationModal';
+import ExternalVideoCard from './ExternalVideoCard';
 import { useLanguage } from '../contexts/LanguageContext';
 import { VideoSearchResult } from '../types';
-import { neutral, overlay, platform } from '../theme/colors';
-import { formatDuration } from '../utils/formatUtils';
-import { THUMBNAIL_PLACEHOLDER_SRC, setThumbnailPlaceholder } from '../utils/thumbnailPlaceholder';
+import { platform } from '../theme/colors';
 
 interface ExternalSearchSectionProps {
     /** Which platform's results these are; drives the heading color and badge. */
@@ -38,13 +24,6 @@ interface ExternalSearchSectionProps {
     /** Ids of the results whose download request has not settled yet. */
     downloadingIds: ReadonlySet<string>;
 }
-
-const formatViewCount = (count?: number) => {
-    if (!count) return '0';
-    if (count < 1000) return count.toString();
-    if (count < 1000000) return `${(count / 1000).toFixed(1)}K`;
-    return `${(count / 1000000).toFixed(1)}M`;
-};
 
 /**
  * One platform's block of online search results on the search page.
@@ -88,145 +67,13 @@ const ExternalSearchSection: React.FC<ExternalSearchSectionProps> = ({
                     <Grid container spacing={3}>
                         {results.map((result) => (
                             <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={result.id}>
-                                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                    <Box sx={{ position: 'relative', paddingTop: '56.25%' }}>
-                                        <CardMedia
-                                            component="img"
-                                            image={result.thumbnailUrl || THUMBNAIL_PLACEHOLDER_SRC}
-                                            alt={result.title}
-                                            // Bilibili's CDN answers 403 to a hotlinked request
-                                            // from any other origin, so the thumbnail only loads
-                                            // when the browser sends no Referer. YouTube's CDN
-                                            // does not care either way.
-                                            referrerPolicy="no-referrer"
-                                            sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                                            onError={(e) => {
-                                                setThumbnailPlaceholder(e.currentTarget);
-                                            }}
-                                        />
-                                        {result.duration && (
-                                            <Chip
-                                                label={formatDuration(result.duration)}
-                                                size="small"
-                                                sx={{ position: 'absolute', bottom: 8, right: 8, bgcolor: overlay.black80, color: neutral.white }}
-                                            />
-                                        )}
-                                        {/* The backend flags results already held by the library,
-                                            so every card says plainly whether the video is local
-                                            or would arrive on the instance only after a download. */}
-                                        {result.local === true && (
-                                            <Chip
-                                                label={t('inLibrary')}
-                                                size="small"
-                                                color="success"
-                                                sx={{ position: 'absolute', top: 8, left: 8 }}
-                                            />
-                                        )}
-                                        {/* The platform badge opens the original video so it
-                                            can be previewed before downloading. */}
-                                        <Tooltip title={t('originalLink')}>
-                                            <Box
-                                                component="a"
-                                                href={result.sourceUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                aria-label={t('originalLink')}
-                                                sx={{ position: 'absolute', top: 8, right: 8, bgcolor: overlay.black70, borderRadius: '50%', p: 0.5, display: 'flex', '&:hover': { bgcolor: overlay.black90 } }}
-                                            >
-                                                {result.source === 'bilibili'
-                                                    ? <OndemandVideo sx={{ color: platform.bilibili }} />
-                                                    : <YouTube sx={{ color: platform.youtube }} />}
-                                            </Box>
-                                        </Tooltip>
-                                    </Box>
-                                    <CardContent sx={{ flexGrow: 1, p: 2 }}>
-                                        <Typography gutterBottom variant="subtitle1" component="div" sx={{ fontWeight: 600, lineHeight: 1.2, mb: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                            {/* YouTube results route through the takeover target so a
-                                                locally-downloaded video opens in the local player;
-                                                non-local ones stream through the instance (or fall
-                                                back to youtube.com when no stream is servable). */}
-                                            {isYoutube ? (
-                                                <a
-                                                    href={`/from/youtube/video/${result.id}`}
-                                                    style={{ color: 'inherit', textDecoration: 'none' }}
-                                                >
-                                                    {result.title}
-                                                </a>
-                                            ) : (
-                                                result.title
-                                            )}
-                                        </Typography>
-                                        {isYoutube && result.channelId ? (
-                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                                <a
-                                                    // The takeover target expects the youtube.com-relative
-                                                    // channel path form, so the raw UC... id gets the
-                                                    // channel/ prefix — otherwise the redirect controller
-                                                    // does not recognize it and bounces to youtube.com.
-                                                    href={`/from/youtube/channel/channel/${result.channelId}`}
-                                                    style={{ color: 'inherit' }}
-                                                >
-                                                    {result.author}
-                                                </a>
-                                            </Typography>
-                                        ) : (
-                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                                {result.author}
-                                            </Typography>
-                                        )}
-                                        {result.viewCount && (
-                                            <Typography variant="caption" color="text.secondary">
-                                                {formatViewCount(result.viewCount)} {t('views')}
-                                            </Typography>
-                                        )}
-                                    </CardContent>
-                                    <CardActions sx={{ p: 2, pt: 0 }}>
-                                        {/* Only YouTube results have a takeover target; Bilibili keeps
-                                            download as the sole action. The backend serves the local
-                                            player when the video is in the library and streams it
-                                            through the instance when it is not, so View is always
-                                            clickable for YouTube results. */}
-                                        {isYoutube && (
-                                            <Button
-                                                variant="outlined"
-                                                startIcon={<PlayArrow />}
-                                                component="a"
-                                                href={`/from/youtube/video/${result.id}`}
-                                            >
-                                                {t('view')}
-                                            </Button>
-                                        )}
-                                        {isYoutube && result.local && result.localVideoId && onDelete ? (
-                                            <Button
-                                                fullWidth
-                                                variant="outlined"
-                                                color="error"
-                                                startIcon={<DeleteOutline />}
-                                                onClick={() => setDeletionTarget(result)}
-                                            >
-                                                {t('delete')}
-                                            </Button>
-                                        ) : (
-                                            <Button
-                                                fullWidth
-                                                variant="contained"
-                                                startIcon={<Download />}
-                                                onClick={() => onDownload(result)}
-                                                // Per result rather than one shared
-                                                // id: two downloads can legitimately
-                                                // be queued at once, and a single id
-                                                // would drop the first card's
-                                                // spinner and let the same result be
-                                                // submitted twice.
-                                                loading={downloadingIds.has(result.id)}
-                                                disabled={downloadingIds.has(result.id)}
-                                                loadingPosition="start"
-                                            >
-                                                {t('download')}
-                                            </Button>
-                                        )}
-                                    </CardActions>
-                                </Card>
+                                <ExternalVideoCard
+                                    result={result}
+                                    isYoutube={isYoutube}
+                                    downloading={downloadingIds.has(result.id)}
+                                    onDownload={onDownload}
+                                    onDeleteRequest={onDelete ? (result) => setDeletionTarget(result) : undefined}
+                                />
                             </Grid>
                         ))}
                     </Grid>

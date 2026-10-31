@@ -1,5 +1,5 @@
 import { CheckCircle, CheckCircleOutline } from '@mui/icons-material';
-import { Avatar, Box, CardContent, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Avatar, Box, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useCloudStorageUrl } from '../../hooks/useCloudStorageUrl';
@@ -8,6 +8,7 @@ import { Video } from '../../types';
 import { authorAvatarFallbackSx } from '../../utils/authorAvatarStyles';
 import { formatVideoUploadTime } from '../../utils/formatUtils';
 import { VideoCardCollectionInfo } from '../../utils/videoCardUtils';
+import { videoEntryTitleSx } from '../../utils/videoEntryStyles';
 
 const DATE_COLLAPSE_MS = 300; // duration of the date show/hide transition
 
@@ -24,10 +25,8 @@ export const VideoCardContent: React.FC<VideoCardContentProps> = ({
     onAuthorClick,
     isHovered = false
 }) => {
-    const { t } = useLanguage();
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const { data: settings } = useSettings();
+    const { t } = useLanguage();
     const avatarUrl = useCloudStorageUrl(video.authorAvatarPath, 'thumbnail');
 
     const authorContainerRef = useRef<HTMLDivElement>(null);
@@ -130,20 +129,12 @@ export const VideoCardContent: React.FC<VideoCardContentProps> = ({
     }, [marqueeing, video.author]);
 
     return (
-        <CardContent sx={{ flexGrow: 1, px: 1, py: isMobile ? 1.5 : 1, display: 'flex', flexDirection: 'column' }}>
-            <Typography 
-                gutterBottom 
-                variant="subtitle1" 
-                component="div" 
-                sx={{ 
-                    fontWeight: 600, 
-                    lineHeight: 1.2, 
-                    mb: 1, 
-                    display: '-webkit-box', 
-                    WebkitLineClamp: 2, 
-                    WebkitBoxOrient: 'vertical', 
-                    overflow: 'hidden' 
-                }}
+        <>
+            <Typography
+                gutterBottom
+                variant="subtitle1"
+                component="div"
+                sx={videoEntryTitleSx}
             >
                 {collectionInfo.isFirstInAnyCollection ? (
                     <>
@@ -249,6 +240,6 @@ export const VideoCardContent: React.FC<VideoCardContentProps> = ({
                     )}
                 </Box>
             </Box>
-        </CardContent>
+        </>
     );
 };

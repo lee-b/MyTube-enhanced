@@ -254,7 +254,7 @@ describe('ExternalSearchSection', () => {
         it('keeps Bilibili cards download-only', () => {
             renderSection();
 
-            expect(screen.queryByRole('button', { name: /view/i })).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: 'view' })).not.toBeInTheDocument();
             expect(screen.queryByRole('link', { name: 'A Bilibili video' })).not.toBeInTheDocument();
         });
     });

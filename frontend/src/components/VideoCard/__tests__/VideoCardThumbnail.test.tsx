@@ -54,7 +54,7 @@ describe('VideoCardThumbnail', () => {
         expect(img).toHaveAttribute('src', 'thumb.jpg');
     });
 
-    it('should render duration chip', () => {
+    it('leaves duration chips to the shared VideoEntryCard shell', () => {
         render(
             <VideoCardThumbnail
                 video={defaultVideo}
@@ -67,7 +67,10 @@ describe('VideoCardThumbnail', () => {
             />
         );
 
-        expect(screen.getByText('10:00')).toBeInTheDocument();
+        // The duration chip moved into the shared VideoEntryCard shell, which
+        // owns the 16:9 thumbnail container; the thumbnail overlay no longer
+        // renders its own container or chip.
+        expect(screen.queryByText('10:00')).not.toBeInTheDocument();
     });
 
     it('should render a music icon for audio-only media', () => {
