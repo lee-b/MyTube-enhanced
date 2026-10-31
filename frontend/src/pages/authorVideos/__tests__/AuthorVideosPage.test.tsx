@@ -15,6 +15,7 @@ const mockShowSnackbar = vi.fn();
 const mockNavigate = vi.fn();
 
 let mockVideos: unknown[] = [];
+let mockSubscriptions: unknown[] = [];
 let mockAuthorVideos: unknown[] = [];
 let mockAvailableTags: string[] = ['tag1', 'tag2'];
 
@@ -97,6 +98,10 @@ vi.mock('../../../hooks/useSettings', () => ({
     useSettings: () => ({
         data: { showTagsOnThumbnail: true },
     }),
+}));
+
+vi.mock('../../../hooks/useSubscriptions', () => ({
+    useSubscriptions: () => ({ data: mockSubscriptions }),
 }));
 
 vi.mock('../../../hooks/useFavoriteAuthors', () => ({
@@ -218,6 +223,7 @@ describe('AuthorVideosPage', () => {
         mockAvailableTags = ['tag1', 'tag2'];
         mockActionsOverrides = {};
         mockTagFilterOverrides = {};
+        mockSubscriptions = [];
         mockVideoCountLabel = '2 videos';
     });
 
@@ -245,6 +251,23 @@ describe('AuthorVideosPage', () => {
             mockAuthorVideos = [...mockVideos];
             renderPage();
             expect(screen.getByTestId('channel-url').textContent).toBe('null');
+        });
+
+        it('falls back to the subscribed channel URL when no local video carries one', () => {
+            mockVideos = [{ id: 'v1', title: 'Video 1', author: 'TestAuthor', tags: ['tag1'] }];
+            mockAuthorVideos = [...mockVideos];
+            mockSubscriptions = [{ id: 'sub-1', author: 'TestAuthor', authorUrl: 'https://www.youtube.com/channel/UCsub' }];
+            renderPage();
+            expect(screen.getByTestId('author-channel-videos')).toBeInTheDocument();
+            expect(screen.getByTestId('channel-url').textContent).toBe('https://www.youtube.com/channel/UCsub');
+        });
+
+        it('matches the subscribed author case-insensitively', () => {
+            mockVideos = [];
+            mockAuthorVideos = [];
+            mockSubscriptions = [{ id: 'sub-1', author: 'testauthor', authorUrl: 'https://www.youtube.com/@testauthor' }];
+            renderPage();
+            expect(screen.getByTestId('channel-url').textContent).toBe('https://www.youtube.com/@testauthor');
         });
 
         it('labels the local grid as latest downloaded videos when the channel listing is shown', () => {

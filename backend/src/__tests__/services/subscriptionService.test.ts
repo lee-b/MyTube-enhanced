@@ -122,6 +122,12 @@ describe('SubscriptionService', () => {
       id: 'collection-1',
     });
 
+    // The deleted-head guard reads download tracking; default to "never
+    // downloaded" unless a test opts into a tracked deletion.
+    (storageService.checkVideoDownloadBySourceId as any).mockReturnValue({
+      found: false,
+    });
+
     backfillOrderMock.mockResolvedValue(null);
 
     (db.select as any).mockReturnValue(mockBuilder);
@@ -344,6 +350,81 @@ describe('SubscriptionService', () => {
       expect(downloadService.downloadYouTubeVideo).not.toHaveBeenCalled();
       // Should still update lastCheck
       expect(db.update).toHaveBeenCalled();
+    });
+
+    it('skips a deleted video and advances the cursor without re-downloading', async () => {
+      // The user deleted the video deliberately; the scheduled check must
+      // never resurrect it. Only the cursor moves past it.
+      const sub = {
+        id: 'sub-deleted',
+        author: 'User',
+        platform: 'YouTube',
+        authorUrl: 'url',
+        lastCheck: 0,
+        interval: 10,
+        lastVideoLink: 'old-link',
+      };
+
+      let callCount = 0;
+      mockBuilder.then = (cb: any) => {
+        callCount++;
+        if (callCount === 1) return Promise.resolve([sub]).then(cb); // listSubscriptions
+        return Promise.resolve([sub]).then(cb); // cursor + lastCheck updates
+      };
+
+      (YtDlpDownloader.getLatestVideoUrl as any).mockResolvedValue('new-link');
+      (storageService.getVideoBySourceUrl as any).mockReturnValue(undefined);
+      (storageService.checkVideoDownloadBySourceId as any).mockReturnValue({
+        found: true,
+        status: 'deleted',
+      });
+      (downloadService.downloadYouTubeVideo as any).mockResolvedValue({
+        videoData: { id: 'vid-1', title: 'New Video' },
+      });
+
+      await subscriptionService.checkSubscriptions();
+
+      expect(storageService.checkVideoDownloadBySourceId).toHaveBeenCalled();
+      expect(downloadService.downloadYouTubeVideo).not.toHaveBeenCalled();
+      // The cursor advanced past the deleted video.
+      expect(mockBuilder.set).toHaveBeenCalledWith(
+        expect.objectContaining({ lastVideoLink: 'new-link' })
+      );
+    });
+
+    it('re-downloads when the head was never downloaded before (no deleted tracking)', async () => {
+      const sub = {
+        id: 'sub-fresh',
+        author: 'User',
+        platform: 'YouTube',
+        authorUrl: 'url',
+        lastCheck: 0,
+        interval: 10,
+        lastVideoLink: 'old-link',
+      };
+
+      let callCount = 0;
+      mockBuilder.then = (cb: any) => {
+        callCount++;
+        if (callCount === 1) return Promise.resolve([sub]).then(cb); // listSubscriptions
+        return Promise.resolve([sub]).then(cb);
+      };
+
+      (YtDlpDownloader.getLatestVideoUrl as any).mockResolvedValue('new-link');
+      (storageService.getVideoBySourceUrl as any).mockReturnValue(undefined);
+      (storageService.checkVideoDownloadBySourceId as any).mockReturnValue({
+        found: false,
+      });
+      (downloadService.downloadYouTubeVideo as any).mockResolvedValue({
+        videoData: { id: 'vid-1', title: 'New Video' },
+      });
+
+      await subscriptionService.checkSubscriptions();
+
+      expect(downloadService.downloadYouTubeVideo).toHaveBeenCalledWith(
+        'new-link',
+        expect.objectContaining({ downloadId: 'test-uuid' })
+      );
     });
 
     it('records a failed check and backs off when the channel probe throws', async () => {
