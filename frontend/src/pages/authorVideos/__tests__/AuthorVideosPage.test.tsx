@@ -246,6 +246,37 @@ describe('AuthorVideosPage', () => {
             renderPage();
             expect(screen.getByTestId('channel-url').textContent).toBe('null');
         });
+
+        it('labels the local grid as latest downloaded videos when the channel listing is shown', () => {
+            renderPage();
+            expect(screen.getByRole('heading', { name: 'latestDownloadedVideos' })).toBeInTheDocument();
+        });
+
+        it('caps the local grid at the latest eight downloads when the channel listing is shown', () => {
+            const tenVideos = Array.from({ length: 10 }, (_, index) => ({
+                id: `v${index}`,
+                title: `Video ${index}`,
+                author: 'TestAuthor',
+                channelUrl: 'https://www.youtube.com/channel/UCtest',
+            }));
+            mockVideos = tenVideos;
+            mockAuthorVideos = [...tenVideos];
+            renderPage();
+            expect(screen.getByTestId('sorted-videos-count').textContent).toBe('8');
+        });
+
+        it('shows the full local grid without the heading when no channel URL exists', () => {
+            const tenVideos = Array.from({ length: 10 }, (_, index) => ({
+                id: `v${index}`,
+                title: `Video ${index}`,
+                author: 'TestAuthor',
+            }));
+            mockVideos = tenVideos;
+            mockAuthorVideos = [...tenVideos];
+            renderPage();
+            expect(screen.getByTestId('sorted-videos-count').textContent).toBe('10');
+            expect(screen.queryByRole('heading', { name: 'latestDownloadedVideos' })).not.toBeInTheDocument();
+        });
     });
 
     // -------------------------------------------------------

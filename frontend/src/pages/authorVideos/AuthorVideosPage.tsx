@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Container } from '@mui/material';
+import { Box, CircularProgress, Container, Typography } from '@mui/material';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
@@ -19,6 +19,13 @@ import AuthorVideosHeader from './AuthorVideosHeader';
 import { useAuthorTagFilter } from './useAuthorTagFilter';
 import { useAuthorVideoActions } from './useAuthorVideoActions';
 import { getAuthorVideos, getVideoCountLabel } from './utils';
+import { sortVideos } from '../../utils/videoSort';
+
+// When the channel listing is shown, the local grid only surfaces the most
+// recent downloads — the channel's full catalogue is listed right below, and
+// every downloaded video appears there with its "in library" badge, so a
+// complete local list would just duplicate it.
+const LATEST_DOWNLOAD_LIMIT = 8;
 import { viewportHeight } from '../../utils/viewportUnits';
 
 const AuthorVideosPage: React.FC = () => {
@@ -37,14 +44,22 @@ const AuthorVideosPage: React.FC = () => {
     } = useFavoriteAuthors();
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    // The channel listing is only offered when the local videos carry a
+    // channel URL the listing endpoint can serve. Resolve it from the raw
+    // videos first so the identity filter below can match by channel, not
+    // just by the author display name.
+    const channelUrl = useMemo(() => {
+        return (
+            videos
+                .filter((video) => video.author === authorName)
+                .find((video) => video.channelUrl)?.channelUrl ?? null
+        );
+    }, [videos, authorName]);
     const authorVideos = useMemo(
-        () => getAuthorVideos(videos, authorName),
-        [videos, authorName]
+        () => getAuthorVideos(videos, authorName, channelUrl),
+        [videos, authorName, channelUrl]
     );
     const authorDisplayName = authorVideos[0]?.author || authorName || '';
-    // The channel listing is only offered when the local videos carry a
-    // channel URL the listing endpoint can serve.
-    const channelUrl = authorVideos.find((video) => video.channelUrl)?.channelUrl ?? null;
     const showTagsOnThumbnail = settings?.showTagsOnThumbnail ?? true;
 
     const {
@@ -109,6 +124,16 @@ const AuthorVideosPage: React.FC = () => {
         [authorVideos.length, selectedTags.length, sortedVideos.length, t]
     );
 
+    // With the channel listing available, the local grid shows only the latest
+    // downloads (always newest-first, regardless of the header's sort menu);
+    // without one, the local grid stays the complete library for the author.
+    const latestDownloadedVideos = useMemo(() => {
+        if (!channelUrl) {
+            return sortedVideos;
+        }
+        return sortVideos(videosFilteredByTags, 'dateDesc').slice(0, LATEST_DOWNLOAD_LIMIT);
+    }, [channelUrl, sortedVideos, videosFilteredByTags]);
+
     if (loading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: viewportHeight(50) }}>
@@ -155,9 +180,15 @@ const AuthorVideosPage: React.FC = () => {
                         favoriteDisabled={isFavoriteToggling}
                     />
 
+                    {channelUrl && (
+                        <Typography variant="h5" component="h2" fontWeight="bold" sx={{ mb: 2 }}>
+                            {t('latestDownloadedVideos')}
+                        </Typography>
+                    )}
+
                     <AuthorVideosContent
                         authorVideosLength={authorVideos.length}
-                        sortedVideos={sortedVideos}
+                        sortedVideos={latestDownloadedVideos}
                         noVideosMessage={t('noVideosForAuthor')}
                         noFilteredVideosMessage={t('noVideosFoundMatching')}
                         showTagsOnThumbnail={showTagsOnThumbnail}
