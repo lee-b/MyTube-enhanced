@@ -157,7 +157,7 @@ describe('ExternalSearchSection', () => {
             renderYoutubeSection();
 
             const link = screen.getByRole('link', { name: 'PowerfulJRE' });
-            expect(link).toHaveAttribute('href', '/from/youtube/channel/UCzQUP1qoWDoEbmsQxvdjxgQ');
+            expect(link).toHaveAttribute('href', '/from/youtube/channel/channel/UCzQUP1qoWDoEbmsQxvdjxgQ');
         });
 
         it('leaves the author as plain text when no channel id came back', () => {

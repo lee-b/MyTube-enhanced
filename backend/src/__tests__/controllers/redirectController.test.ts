@@ -223,6 +223,34 @@ describe("redirectToChannel", () => {
     );
   });
 
+  it("tolerates bare channel ids without the channel/ prefix", async () => {
+    // Search result cards link the raw UC... id; the redirector must not
+    // bounce those to youtube.com for want of the path prefix.
+    storageMocks.getVideoSummaries.mockReturnValue([
+      { id: "1", author: "PowerfulJRE", channelUrl: "https://www.youtube.com/channel/UCzQUP1qoWDoEbmsQxvdjxgQ" },
+    ]);
+
+    const response = await request(buildApp()).get(
+      "/from/youtube/channel/UCzQUP1qoWDoEbmsQxvdjxgQ"
+    );
+
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe("/author/PowerfulJRE");
+  });
+
+  it("serves the local channel page for a bare channel id nothing matches", async () => {
+    storageMocks.getVideoSummaries.mockReturnValue([]);
+
+    const response = await request(buildApp()).get(
+      "/from/youtube/channel/UCunknown12345678"
+    );
+
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe(
+      "/channel/youtube/channel%2FUCunknown12345678"
+    );
+  });
+
   it("falls back to the youtube.com home page for non-channel paths", async () => {
     const response = await request(buildApp()).get(
       "/from/youtube/channel/playlist?list=PLxyz"
