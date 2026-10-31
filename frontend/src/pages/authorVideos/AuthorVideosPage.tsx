@@ -14,6 +14,7 @@ import { useSettings } from '../../hooks/useSettings';
 import { useVideoSort } from '../../hooks/useVideoSort';
 import { useFavoriteAuthors } from '../../hooks/useFavoriteAuthors';
 import AuthorVideosContent from './AuthorVideosContent';
+import AuthorChannelVideos from './AuthorChannelVideos';
 import AuthorVideosHeader from './AuthorVideosHeader';
 import { useAuthorTagFilter } from './useAuthorTagFilter';
 import { useAuthorVideoActions } from './useAuthorVideoActions';
@@ -41,6 +42,9 @@ const AuthorVideosPage: React.FC = () => {
         [videos, authorName]
     );
     const authorDisplayName = authorVideos[0]?.author || authorName || '';
+    // The channel listing is only offered when the local videos carry a
+    // channel URL the listing endpoint can serve.
+    const channelUrl = authorVideos.find((video) => video.channelUrl)?.channelUrl ?? null;
     const showTagsOnThumbnail = settings?.showTagsOnThumbnail ?? true;
 
     const {
@@ -159,6 +163,8 @@ const AuthorVideosPage: React.FC = () => {
                         showTagsOnThumbnail={showTagsOnThumbnail}
                         onDeleteVideo={deleteVideo}
                     />
+
+                    <AuthorChannelVideos channelUrl={channelUrl} />
                 </Box>
             </Box>
 

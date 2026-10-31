@@ -111,6 +111,17 @@ const ExternalSearchSection: React.FC<ExternalSearchSectionProps> = ({
                                                 sx={{ position: 'absolute', bottom: 8, right: 8, bgcolor: overlay.black80, color: neutral.white }}
                                             />
                                         )}
+                                        {/* The backend flags results already held by the library,
+                                            so every card says plainly whether the video is local
+                                            or would arrive on the instance only after a download. */}
+                                        {result.local === true && (
+                                            <Chip
+                                                label={t('inLibrary')}
+                                                size="small"
+                                                color="success"
+                                                sx={{ position: 'absolute', top: 8, left: 8 }}
+                                            />
+                                        )}
                                         {/* The platform badge opens the original video so it
                                             can be previewed before downloading. */}
                                         <Tooltip title={t('originalLink')}>

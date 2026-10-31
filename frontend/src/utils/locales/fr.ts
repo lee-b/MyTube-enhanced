@@ -80,6 +80,8 @@ export const fr = {
   noYouTubeResults: "Aucun résultat YouTube trouvé",
     youtubeChannelUploads: "Vidéos de cette chaîne",
   youtubeChannelLoadFailed: "Impossible de charger les vidéos de cette chaîne. La page de la chaîne sur youtube.com est la solution de repli.",
+  inLibrary: "Dans la bibliothèque",
+  channelVideosHeading: "Toutes les vidéos de cette chaîne",
   fromBilibili: "De Bilibili",
   loadingBilibiliResults: "Chargement des résultats Bilibili...",
   noBilibiliResults: "Aucun résultat Bilibili trouvé",

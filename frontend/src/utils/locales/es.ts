@@ -80,6 +80,8 @@ export const es = {
   noYouTubeResults: "No se encontraron resultados de YouTube",
     youtubeChannelUploads: "Vídeos de este canal",
   youtubeChannelLoadFailed: "No se pudieron cargar los vídeos de este canal. La página del canal en youtube.com es la alternativa.",
+  inLibrary: "En la biblioteca",
+  channelVideosHeading: "Todos los vídeos de este canal",
   fromBilibili: "De Bilibili",
   loadingBilibiliResults: "Cargando resultados de Bilibili...",
   noBilibiliResults: "No se encontraron resultados de Bilibili",
