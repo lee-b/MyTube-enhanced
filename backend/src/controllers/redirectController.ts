@@ -134,8 +134,14 @@ export const normalizeYouTubeChannelPath = (
   const decoded = rawPath.startsWith("%40")
     ? `@${rawPath.slice(3)}`
     : rawPath;
+  // Search results carry bare channel ids ("UC..."); tolerate the missing
+  // channel/ prefix so a channel click can never fall through to youtube.com
+  // for want of the path form the rest of the redirector uses.
+  const withPrefix = /^UC[A-Za-z0-9_-]{10,}$/.test(decoded)
+    ? `channel/${decoded}`
+    : decoded;
   // Express already URL-decodes params, but be forgiving about %40/@ anyway.
-  const withoutQuery = decoded.split(/[?#]/, 1)[0].replace(/\/+$/, "");
+  const withoutQuery = withPrefix.split(/[?#]/, 1)[0].replace(/\/+$/, "");
   if (
     !withoutQuery ||
     withoutQuery.length > CHANNEL_PATH_MAX_LENGTH ||

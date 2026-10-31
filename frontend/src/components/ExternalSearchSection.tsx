@@ -159,7 +159,11 @@ const ExternalSearchSection: React.FC<ExternalSearchSectionProps> = ({
                                         {isYoutube && result.channelId ? (
                                             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                                                 <a
-                                                    href={`/from/youtube/channel/${result.channelId}`}
+                                                    // The takeover target expects the youtube.com-relative
+                                                    // channel path form, so the raw UC... id gets the
+                                                    // channel/ prefix — otherwise the redirect controller
+                                                    // does not recognize it and bounces to youtube.com.
+                                                    href={`/from/youtube/channel/channel/${result.channelId}`}
                                                     style={{ color: 'inherit' }}
                                                 >
                                                     {result.author}
