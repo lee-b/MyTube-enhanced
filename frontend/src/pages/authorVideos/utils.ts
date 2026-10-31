@@ -4,11 +4,40 @@ type NamedCollection = Collection & {
     title?: string;
 };
 
-export const getAuthorVideos = (videos: Video[], authorParam?: string): Video[] => {
+/**
+ * Normalizes a channel URL for identity comparison: strips query strings,
+ * trailing slashes, and trailing listing tabs (e.g. /videos) so that a video
+ * recorded from youtube.com/@handle and a URL captured from the channel page
+ * compare equal even when the author display names differ.
+ */
+export const normalizeChannelUrl = (url: string): string => {
+    const withoutQuery = url.split(/[?#]/, 1)[0].replace(/\/+$/, '');
+    return withoutQuery.replace(/\/(videos|shorts|playlists|streams|featured)$/, '');
+};
+
+export const getAuthorVideos = (
+    videos: Video[],
+    authorParam?: string,
+    channelUrl?: string | null
+): Video[] => {
     if (!authorParam) {
         return [];
     }
-    return videos.filter((video) => video.author === authorParam);
+    const normalizedChannelUrl = channelUrl ? normalizeChannelUrl(channelUrl) : null;
+    return videos.filter((video) => {
+        // Author display names can drift from the channel's canonical name
+        // (renames, truncation, redirector-provided handles), so a video whose
+        // channel URL matches the page's channel belongs on the page even when
+        // its author string does not match.
+        if (
+            normalizedChannelUrl &&
+            video.channelUrl &&
+            normalizeChannelUrl(video.channelUrl) === normalizedChannelUrl
+        ) {
+            return true;
+        }
+        return video.author === authorParam;
+    });
 };
 
 export const getAvailableAuthorTags = (authorVideos: Video[]): string[] => {

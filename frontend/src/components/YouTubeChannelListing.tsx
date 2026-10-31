@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material';
+import { ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 import ExternalSearchSection from './ExternalSearchSection';
 import { useDownload } from '../contexts/DownloadContext';
@@ -34,6 +34,7 @@ const YouTubeChannelListing: React.FC<YouTubeChannelListingProps> = ({ channelPa
     const { handleVideoSubmit } = useDownload();
     const { deleteVideo } = useVideo();
 
+    const [downloadedOnly, setDownloadedOnly] = useState(false);
     const [downloadingIds, setDownloadingIds] = useState<ReadonlySet<string>>(() => new Set());
     const [results, setResults] = useState<VideoSearchResult[]>([]);
     const [loading, setLoading] = useState(true);
@@ -140,13 +141,38 @@ const YouTubeChannelListing: React.FC<YouTubeChannelListingProps> = ({ channelPa
     // that reached this page.
     const channelName = results.find((entry) => entry.author)?.author || channelPath;
 
+    // All/downloaded filter: the listing is the channel's full catalogue, so
+    // the downloaded view is just the subset the library already holds.
+    const visibleResults = downloadedOnly
+        ? results.filter((entry) => entry.local === true)
+        : results;
+
+    const filterToggle = !loading && results.length > 0 && (
+        <ToggleButtonGroup
+            size="small"
+            value={downloadedOnly ? 'downloaded' : 'all'}
+            exclusive
+            onChange={(_, value) => {
+                if (value !== null) setDownloadedOnly(value === 'downloaded');
+            }}
+            sx={{ mb: 2 }}
+        >
+            <ToggleButton value="all" aria-label={t('channelFilterAll')}>
+                {t('channelFilterAll')}
+            </ToggleButton>
+            <ToggleButton value="downloaded" aria-label={t('channelFilterDownloaded')}>
+                {t('channelFilterDownloaded')}
+            </ToggleButton>
+        </ToggleButtonGroup>
+    );
+
     const listing = (
         <ExternalSearchSection
             source="youtube"
             heading={heading ?? t('youtubeChannelUploads')}
             loadingLabel={t('loadingYouTubeResults')}
-            emptyLabel={t('noYouTubeResults')}
-            results={results}
+            emptyLabel={downloadedOnly ? t('noDownloadedChannelVideos') : t('noYouTubeResults')}
+            results={visibleResults}
             loading={loading}
             loadingMore={loadingMore && !exhausted}
             onLoadMore={exhausted ? () => undefined : handleLoadMore}
@@ -164,8 +190,15 @@ const YouTubeChannelListing: React.FC<YouTubeChannelListingProps> = ({ channelPa
         </Typography>
     );
 
+    const listingWithFilter = (
+        <>
+            {filterToggle}
+            {listing}
+        </>
+    );
+
     if (heading !== undefined) {
-        return <>{listing}{errorText}</>;
+        return <>{listingWithFilter}{errorText}</>;
     }
 
     return (
@@ -173,7 +206,7 @@ const YouTubeChannelListing: React.FC<YouTubeChannelListingProps> = ({ channelPa
             <Typography variant="h4" component="h1" fontWeight="bold">
                 {channelName}
             </Typography>
-            {listing}
+            {listingWithFilter}
             {errorText}
         </>
     );

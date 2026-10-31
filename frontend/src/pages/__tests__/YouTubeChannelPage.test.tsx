@@ -84,7 +84,9 @@ describe('YouTubeChannelPage', () => {
         renderPage();
         const card = await screen.findByText('A recent upload');
 
-        fireEvent.click(screen.getByRole('button', { name: /download/i }));
+        // The card's Download button, not the "Downloaded" filter toggle
+        // that also matches /download/i.
+        fireEvent.click(screen.getByRole('button', { name: /^download$/i }));
 
         await waitFor(() => expect(handleVideoSubmit).toHaveBeenCalledWith(
             'https://www.youtube.com/watch?v=6SxEj1cujQE',
@@ -119,5 +121,42 @@ describe('YouTubeChannelPage', () => {
 
         expect(await screen.findByText('noYouTubeResults')).toBeInTheDocument();
         expect(screen.getByText('youtubeChannelLoadFailed')).toBeInTheDocument();
+    });
+
+    it('filters the listing down to downloaded videos with the Downloaded toggle', async () => {
+        fetchMock.mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                results: [pageResult({ id: 'remote-1', title: 'Remote upload' }), pageResult({ id: 'local-1', title: 'Local copy', local: true })],
+                channelPath: 'channel/UCzQUP1qoWDoEbmsQxvdjxgQ',
+            }),
+        });
+
+        renderPage();
+        expect(await screen.findByText('Remote upload')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: 'channelFilterDownloaded' }));
+
+        expect(screen.queryByText('Remote upload')).not.toBeInTheDocument();
+        expect(screen.getByText('Local copy')).toBeInTheDocument();
+
+        // Back to All restores the full catalogue.
+        fireEvent.click(screen.getByRole('button', { name: 'channelFilterAll' }));
+        expect(screen.getByText('Remote upload')).toBeInTheDocument();
+        expect(screen.getByText('Local copy')).toBeInTheDocument();
+    });
+
+    it('shows the dedicated empty label when no channel video is downloaded', async () => {
+        fetchMock.mockResolvedValue({
+            ok: true,
+            json: async () => ({ results: [pageResult()], channelPath: 'channel/UCzQUP1qoWDoEbmsQxvdjxgQ' }),
+        });
+
+        renderPage();
+        await screen.findByText('A recent upload');
+
+        fireEvent.click(screen.getByRole('button', { name: 'channelFilterDownloaded' }));
+
+        expect(await screen.findByText('noDownloadedChannelVideos')).toBeInTheDocument();
     });
 });
