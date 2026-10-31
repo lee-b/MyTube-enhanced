@@ -6,7 +6,6 @@ import { useSnackbar } from "../contexts/SnackbarContext";
 import { Video } from "../types";
 import { api } from "../utils/apiClient";
 import { resolveSubscriptionErrorMessage } from "../utils/subscriptionErrors";
-import { validateUrlForOpen } from "../utils/urlValidation";
 import { SUBSCRIPTIONS_QUERY_KEY, useSubscriptions } from "./useSubscriptions";
 import type { SubscribeFormValues } from "../components/SubscribeModal";
 
@@ -129,29 +128,14 @@ export function useVideoSubscriptions({ video }: UseVideoSubscriptionsProps) {
     return null;
   }, [authorChannelUrl, subscriptions, video]);
 
-  // Handle navigation to author videos page or external channel
+  // Handle navigation to the internal author videos page
   const handleAuthorClick = () => {
     if (!video) return null;
 
-    // If it's a YouTube or Bilibili video, try to get the channel URL
-    if (
-      video.source === "youtube" ||
-      video.source === "bilibili" ||
-      video.source === "twitch"
-    ) {
-      if (authorChannelUrl) {
-        // Validate URL to prevent open redirect attacks
-        const validatedUrl = validateUrlForOpen(authorChannelUrl);
-        if (validatedUrl) {
-          // Open the channel URL in a new tab
-          window.open(validatedUrl, "_blank", "noopener,noreferrer");
-          return null;
-        }
-      }
-    }
-
-    // Default behavior: navigate to author videos page
-    // Note: navigate function should be passed from component
+    // Always navigate to the internal author page: it lists every video the
+    // author has published (the local copies plus the channel's full
+    // catalogue from the channel listing), so clicking an author name in the
+    // player never leaves the instance for youtube.com.
     return {
       shouldNavigate: true,
       path: `/author/${encodeURIComponent(video.author)}`,
