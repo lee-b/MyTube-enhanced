@@ -181,7 +181,7 @@ describe('VideoCard', () => {
         // The activation area is an anchor, so the browser's native link
         // context menu (right-click / middle-click "open in new tab") works
         // anywhere on the card.
-        const activation = screen.getByRole('link').closest('a');
+        const activation = screen.getByRole('link', { name: /Test Video thumbnail/ }).closest('a');
         expect(activation).not.toBeNull();
         expect(activation).toHaveAttribute('href', '/video/123');
     });
@@ -194,8 +194,45 @@ describe('VideoCard', () => {
             </ThemeProvider>
         );
 
-        const activation = screen.getByRole('link').closest('a');
+        const activation = screen.getByRole('link', { name: /Test Video thumbnail/ }).closest('a');
         expect(activation).toHaveAttribute('href', '/collection/col-1');
+    });
+
+    it('renders the same View/Delete action row as the external result cards', () => {
+        const theme = createTheme();
+        render(
+            <ThemeProvider theme={theme}>
+                <VideoCard
+                    video={mockVideo}
+                    showDeleteButton={true}
+                    onDeleteVideo={vi.fn(async () => ({ success: true }))}
+                />
+            </ThemeProvider>
+        );
+
+        // The unified actions row: View routes to the player, Delete offers
+        // removal — the same row the search/channel result cards render.
+        const view = screen.getByRole('link', { name: 'view' });
+        expect(view).toHaveAttribute('href', '/video/123');
+        // Exact name: the mocked kebab menu also renders a "Delete Mock" button.
+        expect(screen.getByRole('button', { name: 'delete' })).toBeInTheDocument();
+    });
+
+    it('opens the delete confirmation from the action row', async () => {
+        const theme = createTheme();
+        render(
+            <ThemeProvider theme={theme}>
+                <VideoCard
+                    video={mockVideo}
+                    showDeleteButton={true}
+                    onDeleteVideo={vi.fn(async () => ({ success: true }))}
+                />
+            </ThemeProvider>
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'delete' }));
+        // The same confirmation modal the kebab menu opens.
+        expect(await screen.findByText(/confirmDelete/)).toBeInTheDocument();
     });
 
     it('navigates to author page on author click', () => {

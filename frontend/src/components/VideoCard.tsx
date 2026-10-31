@@ -17,6 +17,7 @@ import { getVideoCardCollectionInfo } from '../utils/videoCardUtils';
 import { VideoCardActions } from './VideoCard/VideoCardActions';
 import { VideoCardContent } from './VideoCard/VideoCardContent';
 import { VideoCardThumbnail } from './VideoCard/VideoCardThumbnail';
+import { VideoEntryActions } from './VideoCard/VideoEntryActions';
 
 interface VideoCardProps {
     video: Video;
@@ -136,7 +137,16 @@ const VideoCardBase: React.FC<VideoCardProps> = ({
                 />
             }
             actions={
-                <VideoCardActions
+                <>
+                    {/* The same View/Delete row the external result cards
+                        render, so every view of the site offers the same
+                        options in the same place. Delete opens the same
+                        confirmation modal the kebab menu uses. */}
+                    <VideoEntryActions
+                        viewHref={activateHref}
+                        onDelete={actions.canDelete ? () => actions.setShowDeleteModal(true) : undefined}
+                    />
+                    <VideoCardActions
                     video={video}
                     playerMenuAnchor={playerSelection.playerMenuAnchor}
                     setPlayerMenuAnchor={playerSelection.setPlayerMenuAnchor}
@@ -152,7 +162,8 @@ const VideoCardBase: React.FC<VideoCardProps> = ({
                     isMobile={isMobile}
                     isTouch={isTouch}
                     isHovered={hoverPreview.isHovered}
-                />
+                    />
+                </>
             }
             sx={{
                 border: collectionInfo.isFirstInAnyCollection
