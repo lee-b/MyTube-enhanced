@@ -1,5 +1,5 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { type MouseEventHandler, type ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AuthorVideosPage from '../AuthorVideosPage';
@@ -158,6 +158,7 @@ vi.mock('../AuthorVideosHeader', () => ({
             <button data-testid="open-tags-modal-btn" onClick={props.onOpenTagsModal}>Open Tags</button>
             <button data-testid="open-create-collection-btn" onClick={props.onOpenCreateCollectionModal}>Create Collection</button>
             <button data-testid="open-delete-modal-btn" onClick={props.onOpenDeleteModal}>Delete Author</button>
+            <div data-testid="header-subscribe-button">{(props.subscribeButton as ReactNode) ?? ''}</div>
         </div>
     ),
 }));
@@ -175,10 +176,27 @@ vi.mock('../AuthorVideosContent', () => ({
 }));
 
 vi.mock('../AuthorChannelVideos', () => ({
-    default: (props: { channelUrl: unknown; [key: string]: unknown }) => (
+    default: (props: { channelUrl: unknown; hideChannelHeader: unknown; onChannelInfo?: (info: unknown) => void; [key: string]: unknown }) => (
         <div data-testid="author-channel-videos">
             <span data-testid="channel-url">{String(props.channelUrl)}</span>
+            <span data-testid="hide-channel-header">{String(props.hideChannelHeader)}</span>
+            <button data-testid="report-channel-info-btn" onClick={() => { props.onChannelInfo?.({ name: 'Chan', subscriberCount: 100, description: 'Blurb' }); }}>Report Info</button>
         </div>
+    ),
+}));
+
+vi.mock('../AuthorChannelProfile', () => ({
+    default: (props: { channelInfo: { name?: ReactNode }; fallbackName: ReactNode; [key: string]: unknown }) => (
+        <div data-testid="author-channel-profile">
+            <span data-testid="profile-name">{props.channelInfo.name}</span>
+            <span data-testid="profile-fallback-name">{props.fallbackName}</span>
+        </div>
+    ),
+}));
+
+vi.mock('../../../components/ChannelSubscribeButton', () => ({
+    default: (props: { channelUrl: unknown; [key: string]: unknown }) => (
+        <div data-testid="channel-subscribe-button">{String(props.channelUrl)}</div>
     ),
 }));
 
@@ -286,6 +304,28 @@ describe('AuthorVideosPage', () => {
             mockAuthorVideos = [...tenVideos];
             renderPage();
             expect(screen.getByTestId('sorted-videos-count').textContent).toBe('8');
+        });
+
+        it('hides the listing header and renders the subscribe control in the toolbar when the channel URL exists', () => {
+            renderPage();
+            expect(screen.getByTestId('hide-channel-header').textContent).toBe('true');
+            expect(screen.getByTestId('channel-subscribe-button')).toBeInTheDocument();
+            expect(screen.getByTestId('channel-subscribe-button').textContent).toBe('https://www.youtube.com/channel/UCtest');
+        });
+
+        it('omits the subscribe control when no channel URL exists', () => {
+            mockVideos = [{ id: 'v1', title: 'Video 1', author: 'TestAuthor', tags: ['tag1'] }];
+            mockAuthorVideos = [...mockVideos];
+            renderPage();
+            expect(screen.getByTestId('header-subscribe-button').textContent).toBe('');
+        });
+
+        it('renders the channel profile above the local videos once the listing reports the channel identity', () => {
+            renderPage();
+            expect(screen.queryByTestId('author-channel-profile')).not.toBeInTheDocument();
+            fireEvent.click(screen.getByTestId('report-channel-info-btn'));
+            expect(screen.getByTestId('author-channel-profile')).toBeInTheDocument();
+            expect(screen.getByTestId('profile-fallback-name').textContent).toBe('TestAuthor');
         });
 
         it('shows the full local grid without the heading when no channel URL exists', () => {

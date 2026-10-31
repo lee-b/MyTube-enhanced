@@ -1,5 +1,7 @@
 import { Box, CircularProgress, Container, Typography } from '@mui/material';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import ChannelSubscribeButton from '../../components/ChannelSubscribeButton';
+import { type YouTubeChannelInfo } from '../../components/YouTubeChannelListing';
 import { useNavigate, useParams } from 'react-router';
 
 import ConfirmationModal from '../../components/ConfirmationModal';
@@ -16,6 +18,7 @@ import { useFavoriteAuthors } from '../../hooks/useFavoriteAuthors';
 import { useSubscriptions } from '../../hooks/useSubscriptions';
 import AuthorVideosContent from './AuthorVideosContent';
 import AuthorChannelVideos from './AuthorChannelVideos';
+import AuthorChannelProfile from './AuthorChannelProfile';
 import AuthorVideosHeader from './AuthorVideosHeader';
 import { useAuthorTagFilter } from './useAuthorTagFilter';
 import { useAuthorVideoActions } from './useAuthorVideoActions';
@@ -51,6 +54,9 @@ const AuthorVideosPage: React.FC = () => {
     } = useFavoriteAuthors();
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    // Channel identity reported by the channel listing; drives the profile
+    // details rendered above the local videos.
+    const [channelInfo, setChannelInfo] = useState<YouTubeChannelInfo | undefined>();
     const { data: subscriptions = [] } = useSubscriptions<SubscriptionRecord[]>();
     // The channel listing is offered whenever the author's channel URL can be
     // resolved: prefer the URL recorded on the local videos, but keep the
@@ -195,7 +201,18 @@ const AuthorVideosPage: React.FC = () => {
                         favoriteLabel={t('favoriteAuthor')}
                         unfavoriteLabel={t('unfavorite')}
                         favoriteDisabled={isFavoriteToggling}
+                        subscribeButton={channelUrl ? (
+                            <ChannelSubscribeButton
+                                channelUrl={channelUrl}
+                                channelName={authorDisplayName}
+                                trustedName={channelInfo?.name}
+                            />
+                        ) : undefined}
                     />
+
+                    {channelUrl && channelInfo && (
+                        <AuthorChannelProfile channelInfo={channelInfo} fallbackName={authorDisplayName} />
+                    )}
 
                     {channelUrl && (
                         <Typography variant="h5" component="h2" fontWeight="bold" sx={{ mb: 2 }}>
@@ -212,7 +229,11 @@ const AuthorVideosPage: React.FC = () => {
                         onDeleteVideo={deleteVideo}
                     />
 
-                    <AuthorChannelVideos channelUrl={channelUrl} />
+                    <AuthorChannelVideos
+                        channelUrl={channelUrl}
+                        hideChannelHeader
+                        onChannelInfo={setChannelInfo}
+                    />
                 </Box>
             </Box>
 
